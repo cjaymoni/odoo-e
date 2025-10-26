@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17.4
+    container_name: odoo-enterprise-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo_password
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./volumes/odoo-db-data:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - odoo-network
+
+  odoo:
+    build: .
+    container_name: odoo-enterprise
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=odoo
+      - DB_PASSWORD=odoo_password
+      - DB_PORT=5432
+    volumes:
+      - ./odoo:/mnt/extra-addons
+      - ./odoo.conf:/opt/odoo/odoo.conf
+      - ./entrypoint.sh:/opt/odoo/entrypoint.sh
+      - ./wait-for-psql.py:/opt/odoo/wait-for-psql.py
+    ports:
+      - "8069:8069"
+    restart: unless-stopped
+    networks:
+      - odoo-network
+
+networks:
+  odoo-network:
+    driver: bridge

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Security Groups - Define in dependency order -->
+    
+    <!-- Create a dedicated category for catering groups -->
+    <record id="module_category_catering" model="ir.module.category">
+        <field name="name">Catering Management</field>
+        <field name="description">Manage access to catering features</field>
+        <field name="sequence">10</field>
+        <field name="visible">1</field>
+    </record>
+    
+    <!-- Base Staff Group -->
+    <record id="catering_staff_group" model="res.groups">
+        <field name="name">Staff</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Can manage bookings, menu items, and customer interactions</field>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+    
+    <!-- Manager Group (inherits from Staff) -->
+    <record id="catering_manager_group" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('catering_staff_group'))]"/>
+        <field name="comment">Full access to all catering operations, reporting, and configuration</field>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+    
+    <!-- Client Group (Limited Internal User) -->
+    <record id="catering_client_group" model="res.groups">
+        <field name="name">Client</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Limited backend access to view their own bookings and provide feedback</field>
+    </record>
+
+    <!-- Make groups visible to system administrators -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('catering_manager_group'))]"/>
+    </record>
+
+    <!-- Record Rules for Data Security -->
+    
+    <!-- Clients can only see their own bookings -->
+    <record id="catering_booking_client_rule" model="ir.rule">
+        <field name="name">Client: Own Bookings Only</field>
+        <field name="model_id" ref="model_cater_event_booking"/>
+        <field name="domain_force">[('partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Clients can only see their own feedback -->
+    <record id="catering_feedback_client_rule" model="ir.rule">
+        <field name="name">Client: Own Feedback Only</field>
+        <field name="model_id" ref="model_cater_feedback"/>
+        <field name="domain_force">[('booking_id.partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Clients can only see menu lines from their own bookings -->
+    <record id="catering_booking_menu_line_client_rule" model="ir.rule">
+        <field name="name">Client: Own Booking Menu Lines Only</field>
+        <field name="model_id" ref="model_cater_booking_menu_line"/>
+        <field name="domain_force">[('booking_id.partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Clients can only see service lines from their own bookings -->
+    <record id="catering_booking_service_line_client_rule" model="ir.rule">
+        <field name="name">Client: Own Booking Service Lines Only</field>
+        <field name="model_id" ref="model_cater_booking_service_line"/>
+        <field name="domain_force">[('booking_id.partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+       
+
+    <!-- Staff can see all bookings but managers have additional permissions -->
+    <record id="catering_whatsapp_manager_rule" model="ir.rule">
+        <field name="name">Manager: WhatsApp Configuration Access</field>
+        <field name="model_id" ref="model_cater_whatsapp_service"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('catering_manager_group'))]"/>
+    </record>
+
+    <!-- Menu Categories and Items - Read access for all, edit for staff+ -->
+    <record id="catering_menu_public_rule" model="ir.rule">
+        <field name="name">Public: Menu Items Read Access</field>
+        <field name="model_id" ref="model_cater_menu_item"/>
+        <field name="domain_force">[('active', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Clients can only see sales orders created from their bookings -->
+    <record id="catering_sale_order_client_rule" model="ir.rule">
+        <field name="name">Client: Own Sales Orders Only</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="domain_force">[('partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Clients can only see sales order lines from their own orders -->
+    <record id="catering_sale_order_line_client_rule" model="ir.rule">
+        <field name="name">Client: Own Sales Order Lines Only</field>
+        <field name="model_id" ref="sale.model_sale_order_line"/>
+        <field name="domain_force">[('order_id.partner_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('catering_client_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

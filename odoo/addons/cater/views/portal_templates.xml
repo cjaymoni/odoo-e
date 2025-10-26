@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Portal breadcrumb -->
+    <template id="portal_breadcrumbs_catering" name="Portal Catering Breadcrumbs" inherit_id="portal.portal_breadcrumbs">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'catering_bookings'" class="breadcrumb-item active">My Bookings</li>
+            <li t-if="page_name == 'catering_feedback'" class="breadcrumb-item active">My Feedback</li>
+            <li t-if="page_name == 'catering_menu'" class="breadcrumb-item active">Browse Menu</li>
+        </xpath>
+    </template>
+
+    <!-- Portal layout override for catering -->
+    <template id="portal_my_home_catering" name="Portal My Home Catering" inherit_id="portal.portal_my_home" priority="50">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <!-- My Bookings Card -->
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">My Bookings</t>
+                <t t-set="url" t-value="'/my/bookings'"/>
+                <t t-set="placeholder_count" t-value="'booking_count'"/>
+                <t t-set="text">Follow and manage your catering bookings</t>
+            </t>
+            
+            <!-- My Feedback Card -->
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">My Feedback</t>
+                <t t-set="url" t-value="'/my/feedback'"/>
+                <t t-set="placeholder_count" t-value="'feedback_count'"/>
+                <t t-set="text">Share your experience with our services</t>
+            </t>
+            
+            <!-- Browse Menu Card -->
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Browse Menu</t>
+                <t t-set="url" t-value="'/my/menu'"/>
+                <t t-set="placeholder_count" t-value="'menu_count'"/>
+                <t t-set="text">Explore our catering menu options</t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Portal My Bookings -->
+    <template id="portal_my_bookings" name="My Bookings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">My Bookings</t>
+            </t>
+            
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-info" role="alert" t-if="not bookings">
+                            <h4>No bookings found!</h4>
+                            <p>Contact us to create your first catering booking.</p>
+                        </div>
+                        
+                        <div t-if="bookings" class="card">
+                            <div class="card-header">
+                                <h3 class="card-title mb-0">Your Catering Bookings</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Booking Reference</th>
+                                                <th>Event Name</th>
+                                                <th>Event Date</th>
+                                                <th>Venue</th>
+                                                <th>Guests</th>
+                                                <th>Status</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="bookings" t-as="booking">
+                                                <td><strong t-field="booking.name"/></td>
+                                                <td t-field="booking.event_name"/>
+                                                <td t-field="booking.event_date" t-options="{'format': 'MMM dd, yyyy'}"/>
+                                                <td t-field="booking.venue"/>
+                                                <td><span t-field="booking.guest_count"/> guests</td>
+                                                <td>
+                                                    <span t-if="booking.state == 'draft'" class="badge badge-secondary">Draft</span>
+                                                    <span t-if="booking.state == 'confirmed'" class="badge badge-success">Confirmed</span>
+                                                    <span t-if="booking.state == 'in_progress'" class="badge badge-warning">In Progress</span>
+                                                    <span t-if="booking.state == 'completed'" class="badge badge-info">Completed</span>
+                                                    <span t-if="booking.state == 'cancelled'" class="badge badge-danger">Cancelled</span>
+                                                </td>
+                                                <td t-field="booking.total_amount" t-options="{'widget': 'monetary', 'display_currency': booking.currency_id}"/>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

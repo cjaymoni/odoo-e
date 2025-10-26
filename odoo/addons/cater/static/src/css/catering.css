@@ -1,0 +1,200 @@
+/* =================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+   ================================= */
+
+/* Base Mobile Layout */
+.o_form_view .o_form_sheet_bg {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 300px !important;
+    padding: 15px !important;
+}
+
+.o_form_view .oe_chatter {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 300px !important;
+    margin-top: 20px !important;
+}
+
+/* Tablet and Desktop Progressive Enhancement */
+@media (min-width: 768px) {
+
+    .o_form_view .o_form_sheet_bg,
+    .o_form_view .oe_chatter {
+        width: 48% !important;
+        min-width: 400px !important;
+        padding: 20px !important;
+    }
+
+    .o_form_view .oe_chatter {
+        margin-top: 0 !important;
+    }
+}
+
+@media (min-width: 1200px) {
+
+    .o_form_view .o_form_sheet_bg,
+    .o_form_view .oe_chatter {
+        width: 50vw !important;
+        min-width: 600px !important;
+    }
+}
+
+/* Mobile Navigation Improvements */
+@media (max-width: 767px) {
+    .o_main_navbar {
+        padding: 8px 15px !important;
+    }
+
+    .o_menu_sections {
+        font-size: 14px !important;
+    }
+
+    .o_action_manager .o_list_view .table {
+        font-size: 13px !important;
+    }
+
+    .o_form_view .o_group .o_td_label {
+        min-width: 100px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Touch-Friendly Buttons */
+@media (max-width: 767px) {
+    .btn {
+        min-height: 44px !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+    }
+
+    .o_form_view .o_form_statusbar .o_statusbar_status {
+        padding: 8px 12px !important;
+    }
+}
+
+/* =================================
+   DASHBOARD & KPI IMPROVEMENTS
+   ================================= */
+.catering_dashboard {
+    padding: 20px;
+}
+
+.catering_kpi_card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.catering_kpi_number {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.catering_kpi_label {
+    color: #6c757d;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.catering_chart_container {
+    height: 300px;
+    margin-top: 20px;
+}
+
+/* Feedback Rating Badges */
+.badge-rating-5 {
+    background-color: #28a745;
+}
+
+.badge-rating-4 {
+    background-color: #17a2b8;
+}
+
+.badge-rating-3 {
+    background-color: #ffc107;
+}
+
+.badge-rating-2 {
+    background-color: #fd7e14;
+}
+
+.badge-rating-1 {
+    background-color: #dc3545;
+}
+
+/* Form improvements for better spacing */
+.o_form_view .o_group {
+    margin-bottom: 16px;
+}
+
+.o_form_view .o_notebook {
+    margin-top: 16px;
+}
+
+/* Button styling improvements */
+.o_form_view .oe_button_box {
+    margin-bottom: 16px;
+}
+
+
+.catering_menu_kanban_card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    padding: 18px 16px 12px 16px;
+    margin: 10px;
+    transition: box-shadow 0.2s;
+    border: 1px solid #f0f0f0;
+    min-width: 220px;
+    max-width: 270px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.catering_menu_kanban_card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+}
+
+.catering_menu_kanban_image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 10px;
+}
+
+.catering_menu_kanban_title {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-align: center;
+}
+
+.catering_menu_kanban_category {
+    color: #888;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.catering_menu_kanban_price {
+    color: #007bff;
+    font-size: 1.15em;
+    font-weight: 500;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.catering_menu_kanban_badges .badge {
+    margin-right: 4px;
+    font-size: 0.85em;
+    vertical-align: middle;
+}

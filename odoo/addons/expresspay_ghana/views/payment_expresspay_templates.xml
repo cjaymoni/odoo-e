@@ -1,0 +1,22 @@
+<odoo>
+    <template id="expresspay_redirect_form">
+    <form id="o_payment_redirect_form" t-att-action="checkout_url"  method="get">
+        <input type="hidden" name="token" t-att-value="token"/>
+    </form>
+
+  <div class="o_payment_redirect">
+    <p>Redirecting you to ExpressPay...</p>
+    <p>If you are not redirected automatically,
+       <button type="submit" form="o_payment_redirect_form">click here</button>.
+    </p>
+  </div>
+
+  <script type="text/javascript">
+    setTimeout(function () {
+      document.getElementById('o_payment_redirect_form').submit();
+    }, 100);
+  </script>
+</template>
+</odoo>
+
+

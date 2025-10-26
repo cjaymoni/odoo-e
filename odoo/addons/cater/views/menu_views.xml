@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu Category Views -->
+    <record id="catering_menu_category_list_view" model="ir.ui.view">
+        <field name="name">cater.menu.category.list</field>
+        <field name="model">cater.menu.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="catering_menu_category_form_view" model="ir.ui.view">
+        <field name="name">cater.menu.category.form</field>
+        <field name="model">cater.menu.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Category Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Category description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="catering_menu_category_action" model="ir.actions.act_window">
+        <field name="name">Menu Categories</field>
+        <field name="res_model">cater.menu.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu Item Views -->
+    <record id="catering_menu_item_list_view" model="ir.ui.view">
+        <field name="name">cater.menu.item.list</field>
+        <field name="model">cater.menu.item</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="price_per_person" widget="monetary"/>
+                <field name="minimum_order"/>
+                <field name="preparation_time" widget="float_time"/>
+                <field name="is_vegetarian"/>
+                <field name="is_spicy"/>
+                <field name="active"/>
+              
+            </list>
+        </field>
+    </record>
+
+    <record id="catering_menu_item_form_view" model="ir.ui.view">
+        <field name="name">cater.menu.item.form</field>
+        <field name="model">cater.menu.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Menu Item Name"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="basic_info">
+                            <field name="category_id"/>
+                            <field name="price_per_person" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="minimum_order"/>
+                            <field name="preparation_time" widget="float_time"/>
+                        </group>
+                        <group name="properties">
+                            <field name="is_vegetarian"/>
+                            <field name="is_spicy"/>
+                            <field name="active"/>
+                            <field name="allergens"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="description" placeholder="Detailed description of the menu item..."/>
+                    </group>
+                    
+                    <group string="Availability" name="availability">
+                        <group>
+                            <field name="available_from"/>
+                        </group>
+                        <group>
+                            <field name="available_to"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="catering_menu_item_kanban_view" model="ir.ui.view">
+        <field name="name">cater.menu.item.kanban</field>
+        <field name="model">cater.menu.item</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="price_per_person"/>
+                <field name="currency_id"/>
+                <field name="image"/>
+                <field name="is_vegetarian"/>
+                <field name="is_spicy"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="catering_menu_kanban_card oe_kanban_card oe_kanban_global_click">
+                            <div class="catering_menu_kanban_image">
+                                <img t-att-src="kanban_image('cater.menu.item', 'image', record.id.raw_value)" alt="Menu Item"/>
+                            </div>
+                            <div class="catering_menu_kanban_details">
+                                <div class="catering_menu_kanban_title">
+                                    <strong><field name="name"/></strong>
+                                </div>
+                                <div class="catering_menu_kanban_category">
+                                    <small><field name="category_id"/></small>
+                                </div>
+                                <div class="catering_menu_kanban_price">
+                                    <field name="price_per_person" widget="monetary"/>
+                                </div>
+                                <div class="catering_menu_kanban_badges">
+                                    <t t-if="record.is_vegetarian.raw_value">
+                                        <span class="badge badge-success"><i class="fa fa-leaf"></i> Vegetarian</span>
+                                    </t>
+                                    <t t-if="record.is_spicy.raw_value">
+                                        <span class="badge badge-warning"><i class="fa fa-fire"></i> Spicy</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="catering_menu_item_search_view" model="ir.ui.view">
+        <field name="name">cater.menu.item.search</field>
+        <field name="model">cater.menu.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="category_id"/>
+                <separator/>
+                <filter string="Vegetarian" name="vegetarian" domain="[('is_vegetarian','=',True)]"/>
+                <filter string="Spicy" name="spicy" domain="[('is_spicy','=',True)]"/>
+                <filter string="Active" name="active" domain="[('active','=',True)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_category" context="{'group_by':'category_id'}"/>
+                    <filter string="Vegetarian" name="group_vegetarian" context="{'group_by':'is_vegetarian'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="catering_menu_item_action" model="ir.actions.act_window">
+        <field name="name">Menu Items</field>
+        <field name="res_model">cater.menu.item</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="catering_menu_item_search_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first menu item!
+            </p>
+            <p>
+                Create a comprehensive menu with traditional Ghanaian dishes,
+                continental options, and beverages for your catering business.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Catering Management Menu -->
+    <menuitem id="catering_main_menu" 
+              name="Catering Management" 
+              sequence="10" 
+              web_icon="cater,static/description/icon.png"
+              groups="catering_staff_group,catering_manager_group"/>
+
+    <!-- Bookings Menu -->
+    <menuitem id="catering_bookings_menu" 
+              name="Bookings" 
+              parent="catering_main_menu" 
+              sequence="10"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_bookings_all" 
+              name="All Bookings" 
+              parent="catering_bookings_menu" 
+              action="catering_event_booking_action" 
+              sequence="10"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_bookings_today" 
+              name="Today's Events" 
+              parent="catering_bookings_menu" 
+              action="catering_event_booking_today_action" 
+              sequence="20"
+              groups="catering_staff_group,catering_manager_group"/>
+
+    <!-- Menu Management -->
+    <menuitem id="catering_menu_mgmt" 
+              name="Menu Management" 
+              parent="catering_main_menu" 
+              sequence="20"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_menu_items" 
+              name="Menu Items" 
+              parent="catering_menu_mgmt" 
+              action="catering_menu_item_action" 
+              sequence="10"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_menu_categories" 
+              name="Categories" 
+              parent="catering_menu_mgmt" 
+              action="catering_menu_category_action" 
+              sequence="20"
+              groups="catering_staff_group,catering_manager_group"/>
+
+    <!-- Services Menu -->
+    <!-- <menuitem id="catering_services_menu" 
+              name="Services" 
+              parent="catering_main_menu" 
+              sequence="30"/>
+              
+    <menuitem id="catering_services_all" 
+              name="All Services" 
+              parent="catering_services_menu" 
+              action="catering_service_action" 
+              sequence="10"/> -->
+
+    <!-- Customer Management -->
+    <!-- <menuitem id="catering_customers_menu" 
+              name="Customers" 
+              parent="catering_main_menu" 
+              sequence="40"/>
+              
+    <menuitem id="catering_customers_all" 
+              name="All Customers" 
+              parent="catering_customers_menu" 
+              action="catering_customer_action" 
+              sequence="10"/> -->
+
+    <!-- Feedback & Analytics -->
+    <menuitem id="catering_feedback_menu" 
+              name="Feedback &amp; Analytics" 
+              parent="catering_main_menu" 
+              sequence="50"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_feedback_all" 
+              name="Customer Feedback" 
+              parent="catering_feedback_menu" 
+              action="catering_feedback_action" 
+              sequence="10"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_dashboard" 
+              name="Dashboard" 
+              parent="catering_feedback_menu" 
+              action="catering_dashboard_action" 
+              sequence="20"
+              groups="catering_staff_group,catering_manager_group"/>
+
+    <!-- WhatsApp Integration -->
+    <menuitem id="catering_whatsapp_menu" 
+              name="WhatsApp" 
+              parent="catering_main_menu" 
+              sequence="60" 
+              groups="catering_manager_group"/>
+              
+    <menuitem id="catering_whatsapp_config" 
+              name="Configuration" 
+              parent="catering_whatsapp_menu" 
+              action="catering_whatsapp_service_action" 
+              sequence="10"/>
+              
+    <menuitem id="catering_whatsapp_logs" 
+              name="Message Logs" 
+              parent="catering_whatsapp_menu" 
+              action="catering_whatsapp_log_action" 
+              sequence="20"/>
+
+    <!-- Reports Menu -->
+    <menuitem id="catering_reports_menu" 
+              name="Reports" 
+              parent="catering_main_menu" 
+              sequence="50"
+              groups="catering_staff_group,catering_manager_group"/>
+
+    <menuitem id="catering_generate_reports_menu"
+              name="Generate Reports"
+              parent="catering_reports_menu"
+              action="catering_report_wizard_action"
+              sequence="10"
+              groups="catering_staff_group,catering_manager_group"/>
+</odoo>

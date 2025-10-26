@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Additional Services -->
+        <record id="service_waiter" model="cater.service">
+            <field name="name">Additional Waiter</field>
+            <field name="description">Professional waitstaff for your event</field>
+            <field name="price">150.00</field>
+            <field name="service_type">staff</field>
+            <field name="duration">8.0</field>
+        </record>
+        
+        <record id="service_chef" model="cater.service">
+            <field name="name">Live Cooking Chef</field>
+            <field name="description">Chef for live cooking demonstration</field>
+            <field name="price">400.00</field>
+            <field name="service_type">staff</field>
+            <field name="duration">4.0</field>
+        </record>
+        
+        <record id="service_table_setup" model="cater.service">
+            <field name="name">Table &amp; Chair Setup</field>
+            <field name="description">Complete table and chair arrangement</field>
+            <field name="price">200.00</field>
+            <field name="service_type">equipment</field>
+            <field name="duration">2.0</field>
+        </record>
+        
+        <record id="service_decoration" model="cater.service">
+            <field name="name">Event Decoration</field>
+            <field name="description">Basic event decoration with flowers and linens</field>
+            <field name="price">300.00</field>
+            <field name="service_type">decoration</field>
+            <field name="duration">3.0</field>
+        </record>
+        
+        <record id="service_cleanup" model="cater.service">
+            <field name="name">Post-Event Cleanup</field>
+            <field name="description">Complete cleanup after the event</field>
+            <field name="price">180.00</field>
+            <field name="service_type">cleanup</field>
+            <field name="duration">2.0</field>
+        </record>
+        
+        <record id="service_transport" model="cater.service">
+            <field name="name">Food Transportation</field>
+            <field name="description">Transportation of food to venue within Accra</field>
+            <field name="price">100.00</field>
+            <field name="service_type">transport</field>
+            <field name="duration">1.0</field>
+        </record>
+    </data>
+</odoo>
