@@ -1,17 +1,56 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build dependencies
     build-essential \
+    gcc \
+    g++ \
+    # PostgreSQL client
+    postgresql-client \
+    # Python dependencies
+    python3-dev \
+    libpq-dev \
     libxml2-dev \
     libxslt1-dev \
     libldap2-dev \
     libsasl2-dev \
-    libpq-dev \
-    gcc \
-    node-less \
+    libssl-dev \
+    # Fonts and rendering
+    fonts-noto-cjk \
+    libfreetype6-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libwebp-dev \
+    libtiff5-dev \
+    zlib1g-dev \
+    liblcms2-dev \
+    # Wkhtmltopdf dependencies
+    fontconfig \
+    xfonts-base \
+    xfonts-75dpi \
+    xfonts-utils \
+    xvfb \
+    libxrender1 \
+    libxext6 \
+    # Node.js and npm for rtlcss and less
     npm \
+    nodejs \
+    # Other utilities
+    curl \
+    wget \
+    git \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ./wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
+    && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
+    && rm -rf /var/lib/apt/lists/*
+    
+RUN npm install -g rtlcss less less-plugin-clean-css
 
 # Set work directory
 WORKDIR /opt/odoo
@@ -29,7 +68,7 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Expose Odoo port
-EXPOSE 8069
+EXPOSE 8069 8072
 
 # Entrypoint and default command
 ENTRYPOINT ["/opt/odoo/entrypoint.sh"]

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Wizard Form View -->
+    <record id="catering_report_wizard_form" model="ir.ui.view">
+        <field name="name">cater.report.wizard.form</field>
+        <field name="model">cater.report.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Generate Catering Report</h1>
+                    </div>
+                    
+                    <group>
+                        <group name="report_config">
+                            <field name="report_type"/>
+                            <field name="export_format"/>
+                        </group>
+                        <group name="date_range">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Filters" name="filters">
+                        <field name="partner_ids" widget="many2many_tags"/>
+                        <field name="event_type"/>
+                    </group>
+                </sheet>
+                
+                <footer>
+                    <button name="action_generate_report" string="Generate Report" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Report Wizard Action -->
+    <record id="catering_report_wizard_action" model="ir.actions.act_window">
+        <field name="name">Generate Reports</field>
+        <field name="res_model">cater.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Feedback Analysis Report -->
+    <record id="feedback_analysis_report" model="ir.actions.report">
+        <field name="name">Feedback Analysis</field>
+        <field name="model">cater.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cater.feedback_analysis_template</field>
+        <field name="report_file">cater.feedback_analysis_template</field>
+        <field name="binding_model_id" ref="model_cater_report_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- PDF Report Templates -->
+    <template id="feedback_analysis_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h2 class="text-center">Customer Feedback Analysis Report</h2>
+                                <p class="text-center text-muted">
+                                    <t t-esc="context.get('date_range', 'All Time')"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h4><t t-esc="context.get('total_feedback', 0)"/></h4>
+                                        <p class="text-muted">Total Feedback</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h4><t t-esc="context.get('avg_rating', 0)"/>/5</h4>
+                                        <p class="text-muted">Average Rating</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h4><t t-esc="context.get('response_rate', 0)"/>%</h4>
+                                        <p class="text-muted">Response Rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h4><t t-esc="context.get('recommendation_rate', 0)"/>%</h4>
+                                        <p class="text-muted">Recommendation Rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h4>Rating Distribution</h4>
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Rating</th>
+                                            <th>Count</th>
+                                            <th>Percentage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="total_feedback" t-value="context.get('total_feedback', 1)"/>
+                                        <t t-foreach="context.get('rating_distribution', {}).items()" t-as="item">
+                                            <tr>
+                                                <td><t t-esc="item[0]"/> Star<t t-if="item[0] != '1'">s</t></td>
+                                                <td><t t-esc="item[1]"/></td>
+                                                <td><t t-esc="round((item[1] / total_feedback) * 100, 1) if total_feedback > 0 else 0"/>%</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h4>Detailed Ratings</h4>
+                                <t t-set="detailed_ratings" t-value="context.get('detailed_ratings', {})"/>
+                                <div class="mb-2">
+                                    <label>Food Quality:</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" 
+                                             t-att-style="'width: ' + str((detailed_ratings.get('food_quality', 0) / 5) * 100) + '%'">
+                                            <t t-esc="detailed_ratings.get('food_quality', 0)"/>/5
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Service Quality:</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" 
+                                             t-att-style="'width: ' + str((detailed_ratings.get('service_quality', 0) / 5) * 100) + '%'">
+                                            <t t-esc="detailed_ratings.get('service_quality', 0)"/>/5
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Presentation:</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" 
+                                             t-att-style="'width: ' + str((detailed_ratings.get('presentation', 0) / 5) * 100) + '%'">
+                                            <t t-esc="detailed_ratings.get('presentation', 0)"/>/5
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Timeliness:</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" 
+                                             t-att-style="'width: ' + str((detailed_ratings.get('timeliness', 0) / 5) * 100) + '%'">
+                                            <t t-esc="detailed_ratings.get('timeliness', 0)"/>/5
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="oe_structure"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -145,166 +145,6 @@
         </field>
     </record>
 
-    <!-- Event Booking Kanban View -->
-    <record id="catering_event_booking_kanban_view" model="ir.ui.view">
-        <field name="name">cater.event.booking.kanban</field>
-        <field name="model">cater.event.booking</field>
-        <field name="arch" type="xml">
-            <kanban default_group_by="state" class="o_kanban_small_column" quick_create="false">
-                <!-- Define colors for each state -->
-                <field name="state"/>
-                <field name="partner_id"/>
-                <field name="event_name"/>
-                <field name="event_date"/>
-                <field name="venue"/>
-                <field name="guest_count"/>
-                <field name="total_amount"/>
-                <field name="balance_due"/>
-                <field name="event_type"/>
-                <field name="company_id"/>
-                <field name="color"/>
-                
-                <!-- Progress bar showing state distribution -->
-                <progressbar field="state" colors='{"draft": "info", "confirmed": "success", "in_progress": "warning", "completed": "success", "cancelled": "danger"}'/>
-                
-                <templates>
-                    <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
-                            <div class="o_dropdown_kanban dropdown">
-                                <!-- Contextual dropdown menu -->
-                                <a class="dropdown-toggle o-no-caret btn" role="button" data-bs-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
-                                    <span class="fa fa-ellipsis-v"/>
-                                </a>
-                                <div class="dropdown-menu" role="menu">
-                                    <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
-                                    <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
-                                    <div class="dropdown-divider"/>
-                                    <a name="action_send_confirmation" type="object" class="dropdown-item" t-if="record.state.raw_value == 'confirmed'">
-                                        <i class="fa fa-envelope"/> Send Confirmation
-                                    </a>
-                                    <a name="action_view_invoice" type="object" class="dropdown-item" t-if="record.state.raw_value in ['confirmed', 'in_progress', 'completed']">
-                                        <i class="fa fa-file-text-o"/> View Invoice
-                                    </a>
-                                    <a name="action_create_invoice" type="object" class="dropdown-item" t-if="record.state.raw_value == 'confirmed' and record.balance_due.raw_value > 0">
-                                        <i class="fa fa-money"/> Create Invoice
-                                    </a>
-                                    <div class="dropdown-divider"/>
-                                    <ul class="oe_kanban_colorpicker" data-field="color"/>
-                                </div>
-                            </div>
-                            
-                            <!-- Card Header -->
-                            <div class="oe_kanban_content">
-                                <!-- Event Badge -->
-                                <div class="o_kanban_record_top mb-2">
-                                    <div class="o_kanban_record_headings">
-                                        <strong class="o_kanban_record_title">
-                                            <span><field name="name"/></span>
-                                        </strong>
-                                        <br/>
-                                        <span class="o_kanban_record_subtitle">
-                                            <field name="event_name"/>
-                                        </span>
-                                    </div>
-                                    <div class="o_kanban_record_top_right">
-                                        <!-- Event Type Badge -->
-                                        <span t-if="record.event_type.raw_value" class="badge rounded-pill" 
-                                              style="right: 0; position: absolute; margin-right: 1rem;"
-                                              t-attf-class="badge rounded-pill {{
-                                                  record.event_type.raw_value == 'wedding' ? 'text-bg-danger' :
-                                                  record.event_type.raw_value == 'corporate' ? 'text-bg-primary' :
-                                                  record.event_type.raw_value == 'birthday' ? 'text-bg-warning' :
-                                                  record.event_type.raw_value == 'anniversary' ? 'text-bg-info' :
-                                                  'text-bg-secondary'
-                                              }}">
-                                            <field name="event_type"/>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Customer Info -->
-                                <div class="o_kanban_record_body">
-                                    <div class="row mb-1">
-                                        <div class="col-12">
-                                            <i class="fa fa-user-circle-o"/> <field name="partner_id"/>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Event Details -->
-                                    <div class="row mb-1">
-                                        <div class="col-12">
-                                            <i class="fa fa-calendar"/> <field name="event_date" widget="date"/>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row mb-1" t-if="record.venue.raw_value">
-                                        <div class="col-12">
-                                            <i class="fa fa-map-marker"/> <field name="venue"/>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row mb-2">
-                                        <div class="col-6">
-                                            <i class="fa fa-users"/> <field name="guest_count"/> guests
-                                        </div>
-                                        <div class="col-6 text-end">
-                                            <strong class="text-success">
-                                                <field name="total_amount" widget="monetary"/>
-                                            </strong>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Balance Due Warning -->
-                                    <div t-if="record.balance_due.raw_value > 0" class="alert alert-warning py-1 mb-2" role="alert">
-                                        <small><i class="fa fa-exclamation-triangle"/> Balance: <field name="balance_due" widget="monetary"/></small>
-                                    </div>
-                                </div>
-                                
-                                <!-- Quick Action Buttons -->
-                                <div class="o_kanban_record_bottom mt-2">
-                                    <div class="oe_kanban_bottom_left">
-                                        <!-- Company indicator -->
-                                        <field name="company_id" widget="many2one_avatar_user" invisible="1"/>
-                                    </div>
-                                    <div class="oe_kanban_bottom_right">
-                                        <!-- State-based action buttons -->
-                                        <button name="action_confirm" type="object" 
-                                                class="btn btn-sm btn-success"
-                                                t-if="record.state.raw_value == 'draft'"
-                                                title="Confirm Booking">
-                                            <i class="fa fa-check"/> Confirm
-                                        </button>
-                                        
-                                        <button name="action_start_event" type="object" 
-                                                class="btn btn-sm btn-warning"
-                                                t-if="record.state.raw_value == 'confirmed'"
-                                                title="Start Event">
-                                            <i class="fa fa-play"/> Start
-                                        </button>
-                                        
-                                        <button name="action_complete" type="object" 
-                                                class="btn btn-sm btn-primary"
-                                                t-if="record.state.raw_value == 'in_progress'"
-                                                title="Complete Event">
-                                            <i class="fa fa-check-circle"/> Complete
-                                        </button>
-                                        
-                                        <button name="action_cancel" type="object" 
-                                                class="btn btn-sm btn-danger"
-                                                t-if="record.state.raw_value in ['draft', 'confirmed']"
-                                                title="Cancel Booking">
-                                            <i class="fa fa-times"/> Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </t>
-                </templates>
-            </kanban>
-        </field>
-    </record>
-
     <!-- Event Booking Search View -->
     <record id="catering_event_booking_search_view" model="ir.ui.view">
         <field name="name">cater.event.booking.search</field>
@@ -367,7 +207,7 @@
     <record id="catering_event_booking_action" model="ir.actions.act_window">
         <field name="name">Event Bookings</field>
         <field name="res_model">cater.event.booking</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="catering_event_booking_search_view"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -384,7 +224,7 @@
     <record id="catering_event_booking_today_action" model="ir.actions.act_window">
         <field name="name">Today's Events</field>
         <field name="res_model">cater.event.booking</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),
                               ('event_date','&lt;=', datetime.datetime.now().strftime('%Y-%m-%d 23:59:59'))]</field>
         <field name="context">{'search_default_today': 1}</field>

@@ -1,0 +1,11 @@
+
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_menu_category,catering.menu.category,model_catering_menu_category,,1,1,1,1
+access_menu_item,catering.menu.item,model_catering_menu_item,,1,1,1,1
+access_catering_service,catering.service,model_catering_service,,1,1,1,1
+access_event_booking,catering.event.booking,model_catering_event_booking,,1,1,1,1
+access_booking_menu_line,catering.booking.menu.line,model_catering_booking_menu_line,,1,1,1,1
+access_booking_service_line,catering.booking.service.line,model_catering_booking_service_line,,1,1,1,1
+access_catering_feedback,catering.feedback,model_catering_feedback,,1,1,1,1
+access_whatsapp_service,catering.whatsapp.service,model_catering_whatsapp_service,,1,1,1,1
+access_whatsapp_log,catering.whatsapp.log,model_catering_whatsapp_log,,1,1,1,1

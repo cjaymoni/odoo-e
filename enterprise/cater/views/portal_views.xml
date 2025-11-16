@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Portal: Client Dashboard -->
+    <record id="catering_portal_booking_action" model="ir.actions.act_window">
+        <field name="name">My Bookings</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_my_bookings': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No bookings found!
+            </p>
+            <p>
+                Click "Create" to book your first catering service with us.
+            </p>
+        </field>
+    </record>
+
+    <!-- Client-specific booking form view -->
+    <record id="catering_portal_booking_form_view" model="ir.ui.view">
+        <field name="name">cater.event.booking.portal.form</field>
+        <field name="model">cater.event.booking</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="event_name"/>
+                        <h1>
+                            <field name="event_name" placeholder="e.g. Birthday Party, Wedding Reception"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Event Details">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="event_type"/>
+                            <field name="event_date"/>
+                            <field name="guest_count"/>
+                        </group>
+                        <group string="Venue Information">
+                            <field name="venue"/>
+                            <field name="venue_address"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Special Requirements">
+                        <field name="special_requests" nolabel="1" placeholder="Any special requests or instructions..."/>
+                        <field name="dietary_restrictions" nolabel="1" placeholder="Dietary restrictions or allergies..."/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Menu Items" name="menu_items">
+                            <field name="menu_line_ids">
+                                <list editable="bottom">
+                                    <field name="menu_item_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Services" name="services">
+                            <field name="service_line_ids">
+                                <list editable="bottom">
+                                    <field name="service_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="total_amount" widget="monetary"/>
+                    </group>
+                </sheet>
+                
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Portal: Client Feedback -->
+    <record id="catering_portal_feedback_action" model="ir.actions.act_window">
+        <field name="name">My Feedback</field>
+        <field name="res_model">cater.feedback</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No feedback submitted yet!
+            </p>
+            <p>
+                Share your experience with our catering services.
+            </p>
+        </field>
+    </record>
+
+    <!-- Portal Menu for Clients - Top level menu -->
+    <menuitem id="catering_portal_main_menu" 
+              name="My Catering" 
+              sequence="5" 
+              web_icon="cater,static/description/icon.png"
+              groups="catering_client_group"/>
+              
+    <menuitem id="catering_portal_bookings" 
+              name="My Bookings" 
+              parent="catering_portal_main_menu" 
+              action="catering_portal_booking_action" 
+              sequence="10"
+              groups="catering_client_group"/>
+              
+    <menuitem id="catering_portal_feedback" 
+              name="My Feedback" 
+              parent="catering_portal_main_menu" 
+              action="catering_portal_feedback_action" 
+              sequence="20"
+              groups="catering_client_group"/>
+
+    <!-- Portal: Menu Browse (Read-only for clients) -->
+    <record id="catering_portal_menu_action" model="ir.actions.act_window">
+        <field name="name">Browse Menu</field>
+        <field name="res_model">cater.menu.item</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Explore our menu!
+            </p>
+            <p>
+                Browse our selection of traditional Ghanaian and continental dishes.
+            </p>
+        </field>
+    </record>
+    
+    <menuitem id="catering_portal_menu" 
+              name="Browse Menu" 
+              parent="catering_portal_main_menu" 
+              action="catering_portal_menu_action" 
+              sequence="30"
+              groups="catering_client_group"/>
+</odoo>

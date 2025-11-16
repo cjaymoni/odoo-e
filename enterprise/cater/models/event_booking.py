@@ -83,9 +83,6 @@ class EventBooking(models.Model):
         ('cancelled', 'Cancelled')
     ], 'Status', default='draft', tracking=True)
     
-    # Kanban color for visual organization
-    color = fields.Integer('Color Index', default=0)
-    
     # Special Requirements
     special_requests = fields.Text('Special Requests')
     dietary_restrictions = fields.Text('Dietary Restrictions')

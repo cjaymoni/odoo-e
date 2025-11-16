@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="dashboard_template" name="Catering Dashboard Template">
+        <div class="catering-dashboard">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Catering Dashboard</h1>
+                <button class="btn btn-primary btn-sm" t-on-click="loadDashboardData">
+                    <i class="fa fa-sync-alt fa-sm text-white-50"></i> Refresh
+                </button>
+            </div>
+
+            <div t-if="state.loading" class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-2">Loading dashboard data...</p>
+            </div>
+
+            <div t-if="state.error" class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle"></i>
+                <t t-esc="state.error"/>
+            </div>
+
+            <div t-if="state.data and !state.loading">
+                <!-- KPI Cards -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Bookings
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <t t-esc="state.data.kpis.total_bookings"/>
+                                        </div>
+                                        <div class="mt-1">
+                                            <span t-att-class="'text-' + (state.data.kpis.booking_growth >= 0 ? 'success' : 'danger')">
+                                                <t t-esc="formatGrowth(state.data.kpis.booking_growth)"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fa fa-calendar-alt fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Monthly Revenue
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <t t-esc="formatCurrency(state.data.kpis.total_revenue)"/>
+                                        </div>
+                                        <div class="mt-1">
+                                            <span t-att-class="'text-' + (state.data.kpis.revenue_growth >= 0 ? 'success' : 'danger')">
+                                                <t t-esc="formatGrowth(state.data.kpis.revenue_growth)"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Avg Satisfaction
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <t t-esc="state.data.kpis.avg_satisfaction"/>/5
+                                        </div>
+                                        <div class="mt-1">
+                                            <span class="text-warning">
+                                                <t t-esc="getStarRating(state.data.kpis.avg_satisfaction)"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fa fa-star fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Active Customers
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <t t-esc="state.data.kpis.active_customers"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fa fa-users fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Summary -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Customer Feedback</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <h4 class="text-center">
+                                            <t t-esc="state.data.feedback_summary.avg_rating"/>/5
+                                            <div class="text-warning">
+                                                <t t-esc="getStarRating(state.data.feedback_summary.avg_rating)"/>
+                                            </div>
+                                        </h4>
+                                        <p class="text-center text-muted">Average Rating</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p><strong>Total Feedback:</strong> <t t-esc="state.data.feedback_summary.total_feedback"/></p>
+                                        <p><strong>Recommendation Rate:</strong> <t t-esc="state.data.feedback_summary.recommendation_rate"/>%</p>
+                                        <p><strong>Response Rate:</strong> <t t-esc="state.data.feedback_summary.response_rate"/>%</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <h6>Detailed Ratings:</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small>Food Quality: <span class="float-right"><t t-esc="state.data.feedback_summary.detailed_ratings.food_quality"/>/5</span></small>
+                                            <div class="progress mb-2" style="height: 5px;">
+                                                <div class="progress-bar bg-success" t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.food_quality * 20) + '%'"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small>Service: <span class="float-right"><t t-esc="state.data.feedback_summary.detailed_ratings.service_quality"/>/5</span></small>
+                                            <div class="progress mb-2" style="height: 5px;">
+                                                <div class="progress-bar bg-info" t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.service_quality * 20) + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                            </div>
+                            <div class="card-body">
+                                <div t-foreach="state.data.recent_activity" t-as="activity" t-key="activity_index" class="d-flex align-items-center mb-3">
+                                    <div class="mr-3">
+                                        <i t-att-class="'fa fa-' + activity.icon + ' text-primary'"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0"><t t-esc="activity.title"/></h6>
+                                        <small class="text-muted"><t t-esc="activity.description"/></small>
+                                        <br/>
+                                        <small class="text-muted"><t t-esc="formatDate(activity.date)"/></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Events -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Upcoming Events (Next 7 Days)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Event</th>
+                                                <th>Customer</th>
+                                                <th>Date</th>
+                                                <th>Venue</th>
+                                                <th>Guests</th>
+                                                <th>Status</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.data.upcoming_events" t-as="event" t-key="event.id">
+                                                <td><t t-esc="event.name"/></td>
+                                                <td><t t-esc="event.customer"/></td>
+                                                <td><t t-esc="formatDate(event.date)"/></td>
+                                                <td><t t-esc="event.venue"/></td>
+                                                <td><t t-esc="event.guests"/></td>
+                                                <td>
+                                                    <span t-att-class="'badge badge-' + (event.status === 'confirmed' ? 'success' : 'warning')">
+                                                        <t t-esc="event.status"/>
+                                                    </span>
+                                                </td>
+                                                <td><t t-esc="formatCurrency(event.total)"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>
