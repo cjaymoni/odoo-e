@@ -13,6 +13,7 @@
                 <field name="partner_id"/>
                 <field name="event_name"/>
                 <field name="event_type"/>
+                <field name="package_id" optional="show"/>
                 <field name="event_date"/>
                 <field name="venue"/>
                 <field name="guest_count"/>
@@ -70,6 +71,15 @@
                             <field name="guest_count"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
+                    </group>
+                    
+                    <!-- Package Selection Section -->
+                    <group string="📦 Package Selection (Optional)" name="package_section">
+                        <field name="package_id" 
+                               options="{'no_create': True}" 
+                               domain="[('active','=',True), ('company_id','=',company_id)]"
+                               placeholder="Select a package to auto-fill menu and services..."
+                               help="Choose a pre-configured package to automatically populate menu items and services. You can modify them afterwards."/>
                     </group>
                     
                     <notebook>
@@ -163,6 +173,7 @@
                 <field name="event_type"/>
                 <field name="company_id"/>
                 <field name="color"/>
+                <field name="package_id"/>
                 
                 <!-- Progress bar showing state distribution -->
                 <progressbar field="state" colors='{"draft": "info", "confirmed": "success", "in_progress": "warning", "completed": "success", "cancelled": "danger"}'/>
@@ -252,6 +263,11 @@
                                                 <field name="total_amount" widget="monetary"/>
                                             </strong>
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Package Indicator -->
+                                    <div t-if="record.package_id.raw_value" class="alert alert-info py-1 mb-2" role="alert">
+                                        <small><i class="fa fa-cube"/> Package: <field name="package_id"/></small>
                                     </div>
                                     
                                     <!-- Balance Due Warning -->

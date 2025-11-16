@@ -43,6 +43,121 @@ Catering Management 2.0 is a complete end-to-end solution for catering businesse
 - **Special requests** and dietary restrictions
 - **Automatic reminders** via WhatsApp
 
+#### 📋 Kanban View with Contextual Actions
+
+The Event Bookings module includes a powerful **visual kanban board** for intuitive workflow management:
+
+**Visual Layout:**
+
+- **State-based columns** with drag & drop functionality (Draft → Confirmed → In Progress → Completed → Cancelled)
+- **Progress bar** showing booking distribution across all states
+- **Color-coded event type badges** positioned on the right:
+  - 🔴 Wedding (Red)
+  - 🔵 Corporate (Blue)
+  - 🟡 Birthday (Yellow)
+  - 🔷 Anniversary (Cyan)
+  - ⚪ Other types (Gray)
+
+**Card Information Display:**
+Each kanban card shows:
+
+- 📌 Booking reference and event name
+- 👤 Customer name
+- 📅 Event date
+- 📍 Venue location
+- 👥 Guest count
+- 💰 Total amount (highlighted in green)
+- ⚠️ Balance due warning (yellow alert if outstanding)
+
+**Contextual Actions** (via three-dot dropdown menu):
+
+- ✏️ Edit and Delete operations
+- 📧 Send Confirmation (for confirmed bookings)
+- 📄 View Invoice (for confirmed/in-progress/completed)
+- 💵 Create Invoice (for bookings with outstanding balance)
+- 🎨 Color picker for visual priority management
+
+**Quick Action Buttons** (state-based):
+
+- **Draft** → 🟢 Green "Confirm" button
+- **Confirmed** → 🟠 Orange "Start" button
+- **In Progress** → 🔵 Blue "Complete" button
+- **Draft/Confirmed** → 🔴 Red "Cancel" button
+
+**How to Use:**
+
+1. Navigate to **Catering → Bookings → All Bookings**
+2. Click the **kanban view icon** (grid button)
+3. **Drag & drop** bookings between columns to change status
+4. **Click quick action buttons** for fast state transitions
+5. **Use contextual menu** for additional operations
+6. **Assign colors** to bookings for visual organization
+7. **Combine with filters** (e.g., "Today's Events" in kanban view)
+
+**Best Practices:**
+
+- 🔴 Red color: Urgent or high-priority bookings
+- 🟡 Yellow color: Bookings needing attention
+- 🟢 Green color: Confirmed and paid bookings
+- 🔵 Blue color: Standard bookings
+
+### 📦 Package Management
+
+Pre-configured bundles of menu items and services for streamlined bookings.
+
+**Package Features:**
+
+- **Package Types:** Wedding, Birthday, Corporate, Funeral, Outdooring, Graduation, Custom, General
+- **Categories:** Basic, Standard, Premium, Deluxe, Custom (for tiered pricing)
+- **Flexible Pricing:**
+  - Per Person pricing (e.g., GHS 150 per guest)
+  - Fixed price (e.g., GHS 50,000 flat rate)
+  - Custom calculation (based on menu + service totals)
+- **Guest Capacity:** Set minimum and maximum guest limits
+- **Package Contents:**
+  - Bundled menu items with quantities
+  - Included services with quantities
+- **Availability Management:** Date-based availability windows
+- **Visual Presentation:** Upload package images for marketing
+- **Multi-company Support:** Company-specific packages
+
+**How to Create a Package:**
+
+1. Navigate to **Catering → Packages**
+2. Click **Create** and fill in basic details:
+   - Package name (e.g., "Wedding Gold Package")
+   - Package type and category
+   - Min/max guest capacity
+   - Choose pricing method and set price
+3. Add menu items in **Menu Items** tab with quantities
+4. Add services in **Services** tab with quantities
+5. Add description, features, and terms & conditions
+6. Set availability dates (optional)
+7. Upload an attractive package image
+8. Save and activate
+
+**Using Packages in Bookings:**
+
+1. Create or edit an event booking
+2. Select a package from the **Package** dropdown
+3. Menu items and services automatically populate
+4. Adjust quantities or add extras as needed
+5. Complete booking as usual
+
+**Package Benefits:**
+
+- ⚡ **Faster booking creation** - Pre-configured packages save time
+- 💰 **Consistent pricing** - Standardized packages ensure pricing consistency
+- 📈 **Upselling opportunities** - Easy to create Basic/Standard/Premium tiers
+- 🎯 **Marketing-ready** - Promote packages (Wedding Gold, Corporate Deluxe, etc.)
+- 🔧 **Flexibility maintained** - Packages can be customized per booking
+
+**Package Views:**
+
+- **Kanban View:** Visual cards with package images, category badges, pricing, and booking counts
+- **List View:** Sortable table with multi-edit capability
+- **Form View:** Detailed configuration with pricing, menu items, services, and description tabs
+
 ### 🍽️ Menu Management
 
 - **Categorized menu items** with images

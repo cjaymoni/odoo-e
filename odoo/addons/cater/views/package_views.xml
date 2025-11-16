@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Package Kanban View -->
+    <record id="catering_package_kanban_view" model="ir.ui.view">
+        <field name="name">cater.package.kanban</field>
+        <field name="model">cater.package</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="package_type"/>
+                <field name="category"/>
+                <field name="pricing_method"/>
+                <field name="price_per_person"/>
+                <field name="fixed_price"/>
+                <field name="estimated_cost"/>
+                <field name="min_guests"/>
+                <field name="max_guests"/>
+                <field name="is_available"/>
+                <field name="booking_count"/>
+                <field name="color"/>
+                <field name="image_small"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('cater.package', 'image_small', record.id.raw_value)" 
+                                     alt="Package" class="o_image_64_cover"/>
+                            </div>
+                            
+                            <div class="oe_kanban_details">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_kanban_record_top_right">
+                                        <span t-if="record.category.raw_value" 
+                                              class="badge rounded-pill"
+                                              t-attf-class="badge rounded-pill {{
+                                                  record.category.raw_value == 'basic' ? 'text-bg-secondary' :
+                                                  record.category.raw_value == 'standard' ? 'text-bg-primary' :
+                                                  record.category.raw_value == 'premium' ? 'text-bg-success' :
+                                                  record.category.raw_value == 'deluxe' ? 'text-bg-warning' :
+                                                  'text-bg-info'
+                                              }}">
+                                            <field name="category"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="o_kanban_record_body">
+                                    <div class="row">
+                                        <div class="col-12 mb-1">
+                                            <i class="fa fa-tag"/> <field name="package_type"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fa fa-users"/> <field name="min_guests"/>-<field name="max_guests"/> guests
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <strong class="text-success">
+                                                <field name="estimated_cost" widget="monetary"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    
+                                    <div t-if="!record.is_available.raw_value" class="alert alert-warning py-1 mt-2" role="alert">
+                                        <small><i class="fa fa-exclamation-triangle"/> Not Available</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span t-if="record.booking_count.raw_value > 0">
+                                            <i class="fa fa-calendar-check-o"/> <field name="booking_count"/> bookings
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="active" widget="boolean_toggle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Package List View -->
+    <record id="catering_package_list_view" model="ir.ui.view">
+        <field name="name">cater.package.list</field>
+        <field name="model">cater.package</field>
+        <field name="arch" type="xml">
+            <list string="Catering Packages" sample="1" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="package_type"/>
+                <field name="category" optional="show"/>
+                <field name="pricing_method"/>
+                <field name="price_per_person" optional="show" 
+                       invisible="pricing_method != 'per_person'"/>
+                <field name="fixed_price" optional="show" 
+                       invisible="pricing_method != 'fixed'"/>
+                <field name="estimated_cost" optional="show"/>
+                <field name="min_guests" optional="hide"/>
+                <field name="max_guests" optional="hide"/>
+                <field name="booking_count" optional="show"/>
+                <field name="is_available" widget="boolean_toggle" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Package Form View -->
+    <record id="catering_package_form_view" model="ir.ui.view">
+        <field name="name">cater.package.form</field>
+        <field name="model">cater.package</field>
+        <field name="arch" type="xml">
+            <form string="Catering Package">
+                <header>
+                    <button name="action_duplicate_package" type="object" 
+                            string="Duplicate" class="btn-secondary"/>
+                    <button name="action_view_bookings" type="object" 
+                            string="View Bookings" class="btn-primary"
+                            invisible="booking_count == 0"/>
+                </header>
+                
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar" 
+                           options="{'preview_image': 'image_medium'}"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Package Name"/>
+                        </h1>
+                        <div class="o_row">
+                            <field name="active" widget="boolean_toggle"/>
+                            <span class="ms-2">Active</span>
+                        </div>
+                    </div>
+                    
+                    <group>
+                        <group name="basic_info">
+                            <field name="company_id" groups="base.group_multi_company" 
+                                   options="{'no_create': True}"/>
+                            <field name="package_type"/>
+                            <field name="category"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group name="capacity">
+                            <field name="min_guests"/>
+                            <field name="max_guests"/>
+                            <field name="booking_count"/>
+                            <field name="is_available" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Pricing" name="pricing">
+                            <group>
+                                <group>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="pricing_method" widget="radio"/>
+                                    <field name="price_per_person" 
+                                           invisible="pricing_method != 'per_person'"/>
+                                    <field name="fixed_price" 
+                                           invisible="pricing_method != 'fixed'"/>
+                                </group>
+                                <group>
+                                    <field name="menu_total" readonly="1"/>
+                                    <field name="service_total" readonly="1"/>
+                                    <field name="estimated_cost" readonly="1" 
+                                           class="oe_subtotal_footer_separator"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Menu Items" name="menu_items">
+                            <field name="package_menu_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="menu_item_id" 
+                                           context="{'default_company_id': parent.company_id}"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="subtotal" sum="Total" readonly="1"/>
+                                    <field name="notes" optional="hide"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Services" name="services">
+                            <field name="package_service_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_id" 
+                                           context="{'default_company_id': parent.company_id}"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="subtotal" sum="Total" readonly="1"/>
+                                    <field name="notes" optional="hide"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Description" name="description">
+                            <group>
+                                <field name="short_description" placeholder="Brief summary..."/>
+                                <field name="description" placeholder="Detailed description..."/>
+                                <field name="features" placeholder="• Feature 1&#10;• Feature 2&#10;• Feature 3"/>
+                                <field name="terms_conditions" placeholder="Terms and conditions..."/>
+                            </group>
+                        </page>
+                        
+                        <page string="Availability" name="availability">
+                            <group>
+                                <group>
+                                    <field name="available_from"/>
+                                    <field name="available_to"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Package Search View -->
+    <record id="catering_package_search_view" model="ir.ui.view">
+        <field name="name">cater.package.search</field>
+        <field name="model">cater.package</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="package_type"/>
+                <field name="category"/>
+                
+                <filter string="Active" name="active" 
+                        domain="[('active','=',True)]"/>
+                <filter string="Archived" name="inactive" 
+                        domain="[('active','=',False)]"/>
+                <separator/>
+                
+                <filter string="Basic" name="basic" domain="[('category','=','basic')]"/>
+                <filter string="Standard" name="standard" domain="[('category','=','standard')]"/>
+                <filter string="Premium" name="premium" domain="[('category','=','premium')]"/>
+                <filter string="Deluxe" name="deluxe" domain="[('category','=','deluxe')]"/>
+                <separator/>
+                
+                <filter string="Wedding" name="wedding" domain="[('package_type','=','wedding')]"/>
+                <filter string="Corporate" name="corporate" domain="[('package_type','=','corporate')]"/>
+                <filter string="Birthday" name="birthday" domain="[('package_type','=','birthday')]"/>
+                <separator/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Package Type" name="group_package_type" 
+                            context="{'group_by':'package_type'}"/>
+                    <filter string="Category" name="group_category" 
+                            context="{'group_by':'category'}"/>
+                    <filter string="Pricing Method" name="group_pricing_method" 
+                            context="{'group_by':'pricing_method'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Package Action -->
+    <record id="catering_package_action" model="ir.actions.act_window">
+        <field name="name">Packages</field>
+        <field name="res_model">cater.package</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="catering_package_search_view"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first catering package!
+            </p>
+            <p>
+                Packages bundle menu items and services together for easy booking.
+                Create packages for weddings, corporate events, birthdays, and more.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_catering_packages" 
+              name="Packages" 
+              parent="catering_main_menu" 
+              action="catering_package_action" 
+              sequence="15"/>
+</odoo>

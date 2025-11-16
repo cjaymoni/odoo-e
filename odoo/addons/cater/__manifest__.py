@@ -40,6 +40,7 @@
         # Views
         'views/menu_views.xml',
         'views/service_views.xml',
+        'views/package_views.xml',
         'views/events_views.xml',
         'views/feedback_views.xml',
         'views/whatsapp_views.xml',

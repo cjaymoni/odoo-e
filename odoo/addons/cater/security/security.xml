@@ -126,6 +126,14 @@
         <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
+    <!-- Packages - Multi-company rule for staff and managers -->
+    <record id="catering_package_company_rule" model="ir.rule">
+        <field name="name">Multi-Company: Packages</field>
+        <field name="model_id" ref="model_cater_package"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+    </record>
+
     <!-- Bookings - Multi-company rule for staff and managers -->
     <record id="catering_booking_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Event Bookings</field>

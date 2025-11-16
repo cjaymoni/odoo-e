@@ -57,6 +57,10 @@ class EventBooking(models.Model):
     venue_address = fields.Text('Venue Address')
     guest_count = fields.Integer('Expected Guests', required=True, tracking=True)
     
+    # Package
+    package_id = fields.Many2one('cater.package', 'Package', tracking=True, 
+                                  help="Select a pre-configured package for this booking")
+    
     # Menu and Services
     menu_line_ids = fields.One2many('cater.booking.menu.line', 'booking_id', 'Menu Items')
     service_line_ids = fields.One2many('cater.booking.service.line', 'booking_id', 'Additional Services')
@@ -113,6 +117,38 @@ class EventBooking(models.Model):
     def _compute_feedback_received(self):
         for booking in self:
             booking.feedback_received = bool(booking.feedback_ids)
+    
+    @api.onchange('package_id')
+    def _onchange_package_id(self):
+        """Populate menu and service lines from selected package"""
+        if self.package_id:
+            # Clear existing lines
+            self.menu_line_ids = [(5, 0, 0)]
+            self.service_line_ids = [(5, 0, 0)]
+            
+            # Add menu items from package
+            menu_lines = []
+            for package_line in self.package_id.package_menu_line_ids:
+                menu_lines.append((0, 0, {
+                    'menu_item_id': package_line.menu_item_id.id,
+                    'quantity': package_line.quantity,
+                    'notes': package_line.notes or '',
+                }))
+            self.menu_line_ids = menu_lines
+            
+            # Add services from package
+            service_lines = []
+            for package_line in self.package_id.package_service_line_ids:
+                service_lines.append((0, 0, {
+                    'service_id': package_line.service_id.id,
+                    'quantity': package_line.quantity,
+                    'notes': package_line.notes or '',
+                }))
+            self.service_line_ids = service_lines
+            
+            # Set event type if package has specific type
+            if self.package_id.package_type and self.package_id.package_type != 'general':
+                self.event_type = self.package_id.package_type
     
     @api.depends('menu_line_ids.subtotal', 'service_line_ids.subtotal')
     def _compute_totals(self):
