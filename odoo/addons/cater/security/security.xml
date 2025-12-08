@@ -10,30 +10,46 @@
         <field name="visible">1</field>
     </record>
     
-    <!-- Base Staff Group -->
+    <!-- Event Planner Group (Base operational role) -->
+    <record id="catering_event_planner_group" model="res.groups">
+        <field name="name">Event Planner</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Create and manage event bookings, select packages, coordinate with clients</field>
+    </record>
+    
+    <!-- Accountant Group (Financial operations) -->
+    <record id="catering_accountant_group" model="res.groups">
+        <field name="name">Accountant</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('account.group_account_invoice'))]"/>
+        <field name="comment">Manage payments, invoices, financial reports, and accounting operations</field>
+    </record>
+    
+    <!-- Base Staff Group (inherits Event Planner) -->
     <record id="catering_staff_group" model="res.groups">
         <field name="name">Staff</field>
         <field name="category_id" ref="module_category_catering"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-        <field name="comment">Can manage bookings, menu items, and customer interactions</field>
+        <field name="implied_ids" eval="[(4, ref('catering_event_planner_group'))]"/>
+        <field name="comment">Can manage bookings, menu items, services, and customer interactions</field>
         <field name="users" eval="[(4, ref('base.user_admin'))]"/>
     </record>
     
-    <!-- Manager Group (inherits from Staff) -->
+    <!-- Admin/Manager Group (inherits from Staff and Accountant) -->
     <record id="catering_manager_group" model="res.groups">
-        <field name="name">Manager</field>
+        <field name="name">Admin</field>
         <field name="category_id" ref="module_category_catering"/>
-        <field name="implied_ids" eval="[(4, ref('catering_staff_group'))]"/>
-        <field name="comment">Full access to all catering operations, reporting, and configuration</field>
+        <field name="implied_ids" eval="[(4, ref('catering_staff_group')), (4, ref('catering_accountant_group'))]"/>
+        <field name="comment">Full access to all catering operations, reporting, configuration, and financial management</field>
         <field name="users" eval="[(4, ref('base.user_admin'))]"/>
     </record>
     
-    <!-- Client Group (Limited Internal User) -->
+    <!-- Client Group (Limited Internal User - Read-only portal) -->
     <record id="catering_client_group" model="res.groups">
-        <field name="name">Client</field>
+        <field name="name">Client (Portal)</field>
         <field name="category_id" ref="module_category_catering"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-        <field name="comment">Limited backend access to view their own bookings and provide feedback</field>
+        <field name="comment">Read-only portal access to view their own bookings and provide feedback</field>
     </record>
 
     <!-- Make groups visible to system administrators -->
@@ -100,54 +116,78 @@
         <field name="groups" eval="[(4, ref('catering_manager_group'))]"/>
     </record>
 
+    <!-- Event Planner can access all bookings, packages, and services -->
+    <record id="catering_event_planner_booking_rule" model="ir.rule">
+        <field name="name">Event Planner: All Bookings Access</field>
+        <field name="model_id" ref="model_cater_event_booking"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Accountant can view all bookings for financial tracking -->
+    <record id="catering_accountant_booking_rule" model="ir.rule">
+        <field name="name">Accountant: View All Bookings</field>
+        <field name="model_id" ref="model_cater_event_booking"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('catering_accountant_group'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <!-- Multi-Company Rules -->
     
-    <!-- Menu Categories - Multi-company rule for staff and managers -->
+    <!-- Menu Categories - Multi-company rule for event planners, staff and managers -->
     <record id="catering_menu_category_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Menu Categories</field>
         <field name="model_id" ref="model_cater_menu_category"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
-    <!-- Menu Items - Multi-company rule for staff and managers -->
+    <!-- Menu Items - Multi-company rule for event planners, staff and managers -->
     <record id="catering_menu_item_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Menu Items</field>
         <field name="model_id" ref="model_cater_menu_item"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
-    <!-- Services - Multi-company rule for staff and managers -->
+    <!-- Services - Multi-company rule for event planners, staff and managers -->
     <record id="catering_service_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Services</field>
         <field name="model_id" ref="model_cater_service"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
-    <!-- Packages - Multi-company rule for staff and managers -->
+    <!-- Packages - Multi-company rule for event planners, staff and managers -->
     <record id="catering_package_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Packages</field>
         <field name="model_id" ref="model_cater_package"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
-    <!-- Bookings - Multi-company rule for staff and managers -->
+    <!-- Bookings - Multi-company rule for event planners, accountants, staff and managers -->
     <record id="catering_booking_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Event Bookings</field>
         <field name="model_id" ref="model_cater_event_booking"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_accountant_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
-    <!-- Feedback - Multi-company rule for staff and managers -->
+    <!-- Feedback - Multi-company rule for event planners, staff and managers -->
     <record id="catering_feedback_company_rule" model="ir.rule">
         <field name="name">Multi-Company: Feedback</field>
         <field name="model_id" ref="model_cater_feedback"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
+        <field name="groups" eval="[(4, ref('catering_event_planner_group')), (4, ref('catering_staff_group')), (4, ref('catering_manager_group'))]"/>
     </record>
 
     <!-- WhatsApp Service - Multi-company rule for managers -->

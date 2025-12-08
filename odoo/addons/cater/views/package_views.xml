@@ -297,10 +297,5 @@
         </field>
     </record>
 
-    <!-- Menu Item -->
-    <menuitem id="menu_catering_packages" 
-              name="Packages" 
-              parent="catering_main_menu" 
-              action="catering_package_action" 
-              sequence="15"/>
+    <!-- Menu Item - Packages is now under Event Planning menu in catering_menu.xml -->
 </odoo>
