@@ -147,7 +147,13 @@ class EventBooking(models.Model):
     # Related Records
     sale_order_id = fields.Many2one('sale.order', 'Sales Order')
     invoice_ids = fields.One2many('account.move', 'catering_booking_id', 'Invoices')
+    invoice_count = fields.Integer('Invoice Count', compute='_compute_invoice_count')
     feedback_ids = fields.One2many('cater.feedback', 'booking_id', 'Feedback')
+    
+    @api.depends('invoice_ids')
+    def _compute_invoice_count(self):
+        for booking in self:
+            booking.invoice_count = len(booking.invoice_ids)
     
     def _is_filter_active(self, search_key, context_key=None):
         ctx = self.env.context
@@ -537,6 +543,86 @@ class EventBooking(models.Model):
                 'categ_id': self.env.ref('product.product_category_all').id,
             })
         return product
+    
+    def action_create_invoice(self):
+        """Create invoice from booking with Ghana VAT"""
+        self.ensure_one()
+        
+        if not self.partner_id:
+            raise UserError(_("Please set a customer before creating an invoice."))
+        
+        if not self.menu_line_ids and not self.service_line_ids:
+            raise UserError(_("Please add menu items or services before creating an invoice."))
+        
+        # Get Ghana VAT tax
+        ghana_vat = self.env.ref('cater.ghana_vat_sale_15', raise_if_not_found=False)
+        if not ghana_vat:
+            # Fallback: search for any 15% sales tax
+            ghana_vat = self.env['account.tax'].search([
+                ('amount', '=', 15.0),
+                ('type_tax_use', '=', 'sale'),
+                ('active', '=', True)
+            ], limit=1)
+        
+        invoice_lines = []
+        
+        # Add menu items
+        for line in self.menu_line_ids:
+            invoice_line = {
+                'name': f"{line.menu_item_id.name} - {self.event_name}",
+                'quantity': line.quantity,
+                'price_unit': line.price_unit,
+                'tax_ids': [(6, 0, ghana_vat.ids)] if ghana_vat else [],
+            }
+            invoice_lines.append((0, 0, invoice_line))
+        
+        # Add services
+        for line in self.service_line_ids:
+            invoice_line = {
+                'name': f"{line.service_id.name} - {self.event_name}",
+                'quantity': line.quantity,
+                'price_unit': line.price_unit,
+                'tax_ids': [(6, 0, ghana_vat.ids)] if ghana_vat else [],
+            }
+            invoice_lines.append((0, 0, invoice_line))
+        
+        # Create invoice
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_id.id,
+            'invoice_date': fields.Date.today(),
+            'invoice_date_due': fields.Date.today() + timedelta(days=30),
+            'catering_booking_id': self.id,
+            'invoice_line_ids': invoice_lines,
+            'narration': f"Event: {self.event_name}\nDate: {self.event_date.strftime('%Y-%m-%d %H:%M') if self.event_date else 'TBD'}\nGuests: {self.guest_count}\nVenue: {self.venue}"
+        })
+        
+        # Post message on booking
+        self.message_post(
+            body=f"Invoice <a href='/web#id={invoice.id}&model=account.move'>{invoice.name}</a> created",
+            message_type='notification'
+        )
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'res_id': invoice.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('account.view_move_form').id,
+            'target': 'current',
+        }
+    
+    def action_view_invoices(self):
+        """View invoices related to this booking"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Invoices'),
+            'res_model': 'account.move',
+            'view_mode': 'tree,form',
+            'domain': [('catering_booking_id', '=', self.id)],
+            'context': {'default_catering_booking_id': self.id},
+        }
     
     def _send_whatsapp_confirmation(self):
         """Send WhatsApp confirmation message if opted in"""

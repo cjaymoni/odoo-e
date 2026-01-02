@@ -37,6 +37,7 @@
         'data/whatsapp_service_default.xml',
         'data/cron_jobs.xml',
         'data/currency_rates.xml',
+        'data/ghana_vat_taxes.xml',
         
         # Views
         'views/menu_views.xml',
