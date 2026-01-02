@@ -8,3 +8,4 @@ from . import res_partner_extend
 from . import account_move_extend
 from . import dashboard
 from . import reports
+from . import currency_rate

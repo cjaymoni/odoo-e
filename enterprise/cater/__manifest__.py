@@ -36,6 +36,7 @@
         'data/demo_users.xml',
         'data/whatsapp_service_default.xml',
         'data/cron_jobs.xml',
+        'data/currency_rates.xml',
         
         # Views
         'views/menu_views.xml',
@@ -48,6 +49,7 @@
         'views/dashboard_template.xml',
         'views/report_views.xml',
         'views/portal_views.xml',
+        'views/currency_rate_views.xml',
         'views/catering_menu.xml',
         
     ],

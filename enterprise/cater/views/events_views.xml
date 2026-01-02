@@ -142,8 +142,27 @@
                         </div>
                         <field name="manual_total_override" widget="boolean_toggle"/>
                         <field name="deposit_amount" widget="monetary"/>
-                        <field name="paid_amount" widget="monetary" style="width: 300px;"/>
-                        <field name="balance_due" widget="monetary" style="width: 300px;"/>
+                        <field name="paid_amount" widget="monetary" style="width: 200px;"/>
+                        <field name="balance_due" widget="monetary" style="width: 200px;"/>
+                        <field name="show_currency_conversions" widget="boolean_toggle"/>
+                        <field name="total_amount_usd" widget="monetary" 
+                               invisible="not show_currency_conversions"
+                               readonly="1"/>
+                        <div invisible="not show_currency_conversions" class="text-muted o_cell o_wrap_label text-break " style="font-size: 0.80em; margin-top: -8px; margin-bottom: 4px;">
+                            <span>Rate: 1 GHS = </span>
+                            <field name="usd_rate_used" nolabel="1" readonly="1" style="display: inline;"/>
+                            <span> USD</span>
+                        </div>
+                        <field name="total_amount_gbp" widget="monetary"
+                               invisible="not show_currency_conversions"
+                               readonly="1"/>
+                        <div invisible="not show_currency_conversions" class="text-muted o_cell o_wrap_label text-break " style="font-size: 0.80em; margin-top: -8px; margin-bottom: 4px;">
+                            <span>Rate: 1 GHS = </span>
+                            <field name="gbp_rate_used" nolabel="1" readonly="1" style="display: inline;"/>
+                            <span> GBP</span>
+                        </div>
+                        <field name="usd_currency_id" invisible="1"/>
+                        <field name="gbp_currency_id" invisible="1"/>
                     </group>
                 </sheet>
                 

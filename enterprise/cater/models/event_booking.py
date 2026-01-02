@@ -90,6 +90,26 @@ class EventBooking(models.Model):
                                            help="Enable to lock the total amount to a manually provided value.")
     manual_total_amount = fields.Monetary('Manual Total Amount', currency_field='currency_id')
     
+    # Multi-Currency Display (GHS base with USD/GBP conversion)
+    total_amount_usd = fields.Monetary('Total (USD)', compute='_compute_currency_conversions', 
+                                       currency_field='usd_currency_id', store=True,
+                                       help="Total amount converted to USD")
+    total_amount_gbp = fields.Monetary('Total (GBP)', compute='_compute_currency_conversions',
+                                       currency_field='gbp_currency_id', store=True,
+                                       help="Total amount converted to GBP")
+    usd_rate_used = fields.Float('USD Rate Used', compute='_compute_currency_conversions', 
+                                  store=True, digits=(12, 6),
+                                  help="Exchange rate used for USD conversion")
+    gbp_rate_used = fields.Float('GBP Rate Used', compute='_compute_currency_conversions',
+                                  store=True, digits=(12, 6),
+                                  help="Exchange rate used for GBP conversion")
+    usd_currency_id = fields.Many2one('res.currency', 'USD Currency', 
+                                      compute='_compute_currency_ids', store=False)
+    gbp_currency_id = fields.Many2one('res.currency', 'GBP Currency',
+                                      compute='_compute_currency_ids', store=False)
+    show_currency_conversions = fields.Boolean('Show Currency Conversions', default=True,
+                                               help="Display USD and GBP conversions on the form")
+    
     # Payment
     deposit_amount = fields.Monetary('Deposit Required (50%)', compute='_compute_deposit', store=True)
     paid_amount = fields.Monetary('Amount Paid', default=0.0, tracking=True)
@@ -253,6 +273,68 @@ class EventBooking(models.Model):
             else:
                 unique_types = set(filter(None, service_types))
                 booking.service_type_group = unique_types.pop() if len(unique_types) == 1 else 'mixed'
+    
+    def _compute_currency_ids(self):
+        """Get USD and GBP currency records"""
+        usd = self.env['res.currency'].search([('name', '=', 'USD')], limit=1)
+        gbp = self.env['res.currency'].search([('name', '=', 'GBP')], limit=1)
+        for booking in self:
+            booking.usd_currency_id = usd
+            booking.gbp_currency_id = gbp
+    
+    @api.depends('total_amount', 'currency_id', 'event_date')
+    def _compute_currency_conversions(self):
+        """Convert total amount to USD and GBP using manual exchange rates"""
+        for booking in self:
+            _logger.info(f"Computing currency conversions for {booking.name}: total={booking.total_amount}, currency={booking.currency_id.name}")
+            
+            if not booking.total_amount or not booking.currency_id:
+                booking.total_amount_usd = 0.0
+                booking.total_amount_gbp = 0.0
+                booking.usd_rate_used = 0.0
+                booking.gbp_rate_used = 0.0
+                _logger.warning(f"Skipping {booking.name}: no total_amount or currency_id")
+                continue
+            
+            # Get currency records
+            usd = self.env['res.currency'].search([('name', '=', 'USD')], limit=1)
+            gbp = self.env['res.currency'].search([('name', '=', 'GBP')], limit=1)
+            
+            _logger.info(f"Found currencies - USD: {usd.name if usd else 'None'}, GBP: {gbp.name if gbp else 'None'}")
+            
+            # Use event date for conversion, fallback to today
+            conversion_date = booking.event_date.date() if booking.event_date else fields.Date.today()
+            _logger.info(f"Using conversion date: {conversion_date}")
+            
+            # Convert to USD
+            if usd:
+                usd_rate = self.env['cater.currency.rate'].get_conversion_rate(
+                    booking.currency_id,
+                    usd,
+                    conversion_date
+                )
+                usd_amount = booking.total_amount * usd_rate
+                booking.total_amount_usd = usd_amount
+                booking.usd_rate_used = usd_rate
+                _logger.info(f"Converted {booking.total_amount} GHS to {usd_amount} USD (rate: {usd_rate})")
+            else:
+                booking.total_amount_usd = 0.0
+                booking.usd_rate_used = 0.0
+            
+            # Convert to GBP
+            if gbp:
+                gbp_rate = self.env['cater.currency.rate'].get_conversion_rate(
+                    booking.currency_id,
+                    gbp,
+                    conversion_date
+                )
+                gbp_amount = booking.total_amount * gbp_rate
+                booking.total_amount_gbp = gbp_amount
+                booking.gbp_rate_used = gbp_rate
+                _logger.info(f"Converted {booking.total_amount} GHS to {gbp_amount} GBP (rate: {gbp_rate})")
+            else:
+                booking.total_amount_gbp = 0.0
+                booking.gbp_rate_used = 0.0
     
     def write(self, vals):
         # Disable tracking for computed fields to reduce chatter noise

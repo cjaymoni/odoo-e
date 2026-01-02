@@ -146,4 +146,18 @@
               action="catering_report_wizard_action"
               sequence="10"
               groups="catering_staff_group,catering_manager_group"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="catering_config_menu"
+              name="Configuration"
+              parent="catering_main_menu"
+              sequence="60"
+              groups="catering_manager_group"/>
+    
+    <menuitem id="catering_currency_rates_menu"
+              name="Exchange Rates"
+              parent="catering_config_menu"
+              action="cater_currency_rate_action"
+              sequence="10"
+              groups="catering_manager_group"/>
 </odoo>

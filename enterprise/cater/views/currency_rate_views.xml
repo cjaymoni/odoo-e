@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Currency Rate List View -->
+    <record id="cater_currency_rate_list_view" model="ir.ui.view">
+        <field name="name">cater.currency.rate.list</field>
+        <field name="model">cater.currency.rate</field>
+        <field name="arch" type="xml">
+            <list editable="top" default_order="date desc">
+                <field name="date"/>
+                <field name="company_currency_id" readonly="1"/>
+                <field name="currency_id"/>
+                <field name="rate"/>
+                <field name="inverse_rate" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Currency Rate Form View -->
+    <record id="cater_currency_rate_form_view" model="ir.ui.view">
+        <field name="name">cater.currency.rate.form</field>
+        <field name="model">cater.currency.rate</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="company_currency_id" readonly="1"/>
+                            <field name="currency_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Exchange Rates">
+                        <group>
+                            <label for="rate" string="Direct Rate"/>
+                            <div class="o_row">
+                                <span>1</span>
+                                <field name="company_currency_id" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span>=</span>
+                                <field name="rate" nolabel="1" class="oe_inline"/>
+                                <field name="currency_id" readonly="1" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <label for="inverse_rate" string="Inverse Rate"/>
+                            <div class="o_row">
+                                <span>1</span>
+                                <field name="currency_id" readonly="1" nolabel="1" class="oe_inline"/>
+                                <span>=</span>
+                                <field name="inverse_rate" readonly="1" nolabel="1" class="oe_inline"/>
+                                <field name="company_currency_id" readonly="1" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="display_name" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Currency Rate Search View -->
+    <record id="cater_currency_rate_search_view" model="ir.ui.view">
+        <field name="name">cater.currency.rate.search</field>
+        <field name="model">cater.currency.rate</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="currency_id"/>
+                <field name="date"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('active','=',True)]"/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+                <separator/>
+                <filter string="USD" name="usd" domain="[('currency_id.name','=','USD')]"/>
+                <filter string="GBP" name="gbp" domain="[('currency_id.name','=','GBP')]"/>
+                <filter string="EUR" name="eur" domain="[('currency_id.name','=','EUR')]"/>
+                <separator/>
+                <filter string="This Month" name="this_month" 
+                        domain="[('date','&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('date','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Year" name="this_year"
+                        domain="[('date','&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Currency" name="group_currency" context="{'group_by':'currency_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'date:month'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Currency Rate Action -->
+    <record id="cater_currency_rate_action" model="ir.actions.act_window">
+        <field name="name">Exchange Rates</field>
+        <field name="res_model">cater.currency.rate</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first exchange rate!
+            </p>
+            <p>
+                Manually manage exchange rates for currency conversions in your catering bookings.
+                Set rates for USD, GBP, and other currencies relative to GHS (Ghana Cedis).
+            </p>
+            <p>
+                <strong>Example:</strong> If 1 GHS = 0.08 USD, enter 0.08 as the rate.
+            </p>
+        </field>
+    </record>
+</odoo>
