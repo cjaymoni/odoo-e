@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.osv import expression
+from odoo.tools import float_compare
 from datetime import datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 import logging
@@ -83,12 +84,17 @@ class EventBooking(models.Model):
     service_total = fields.Monetary('Service Total', compute='_compute_totals', store=True)
     subtotal = fields.Monetary('Subtotal', compute='_compute_totals', store=True)
     tax_amount = fields.Monetary('VAT (15%)', compute='_compute_totals', store=True)  # Ghana VAT
-    total_amount = fields.Monetary('Total Amount', compute='_compute_totals', store=True)
+    total_amount = fields.Monetary('Total Amount', compute='_compute_totals', store=True,
+                                   inverse='_inverse_total_amount')
+    manual_total_override = fields.Boolean('Manual Total Override', default=False,
+                                           help="Enable to lock the total amount to a manually provided value.")
+    manual_total_amount = fields.Monetary('Manual Total Amount', currency_field='currency_id')
     
     # Payment
     deposit_amount = fields.Monetary('Deposit Required (50%)', compute='_compute_deposit', store=True)
     paid_amount = fields.Monetary('Amount Paid', default=0.0, tracking=True)
-    balance_due = fields.Monetary('Balance Due', compute='_compute_balance', store=True)
+    balance_due = fields.Monetary('Balance Due', compute='_compute_balance', store=True,
+                                  inverse='_inverse_balance_due')
     
     # Status and Workflow  
     state = fields.Selection([
@@ -223,14 +229,20 @@ class EventBooking(models.Model):
             if self.package_id.package_type and self.package_id.package_type != 'general':
                 self.event_type = self.package_id.package_type
     
-    @api.depends('menu_line_ids.subtotal', 'service_line_ids.subtotal')
+    @api.depends('menu_line_ids.subtotal', 'service_line_ids.subtotal',
+                 'manual_total_override', 'manual_total_amount')
     def _compute_totals(self):
         for booking in self:
             booking.menu_total = sum(booking.menu_line_ids.mapped('subtotal'))
             booking.service_total = sum(booking.service_line_ids.mapped('subtotal'))
             booking.subtotal = booking.menu_total + booking.service_total
             booking.tax_amount = booking.subtotal * 0.15  # Ghana VAT 15%
-            booking.total_amount = booking.subtotal + booking.tax_amount
+            computed_total = booking.subtotal + booking.tax_amount
+            if booking.manual_total_override:
+                booking.total_amount = booking.manual_total_amount or computed_total
+            else:
+                booking.total_amount = computed_total
+                booking.manual_total_amount = False
 
     @api.depends('service_line_ids.service_id.service_type')
     def _compute_service_type_group(self):
@@ -259,6 +271,26 @@ class EventBooking(models.Model):
     def _compute_balance(self):
         for booking in self:
             booking.balance_due = booking.total_amount - booking.paid_amount
+
+    def _inverse_total_amount(self):
+        for booking in self:
+            computed_total = booking.subtotal + booking.tax_amount
+            currency = booking.currency_id or booking.company_id.currency_id
+            rounding = currency.rounding if currency else 0.01
+            if float_compare(booking.total_amount, computed_total, precision_rounding=rounding) != 0:
+                booking.manual_total_override = True
+                booking.manual_total_amount = booking.total_amount
+            else:
+                booking.manual_total_override = False
+                booking.manual_total_amount = False
+
+    def _inverse_balance_due(self):
+        for booking in self:
+            currency = booking.currency_id or booking.company_id.currency_id
+            desired_paid = booking.total_amount - booking.balance_due
+            if desired_paid < 0:
+                desired_paid = 0.0
+            booking.paid_amount = currency.round(desired_paid) if currency else desired_paid
     
     @api.constrains('event_date')
     def _check_event_date(self):

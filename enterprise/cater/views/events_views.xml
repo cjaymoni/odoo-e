@@ -140,9 +140,10 @@
                         <div class="oe_subtotal_footer_separator">
                             <field name="total_amount" widget="monetary" class="oe_subtotal_footer_total"/>
                         </div>
+                        <field name="manual_total_override" widget="boolean_toggle"/>
                         <field name="deposit_amount" widget="monetary"/>
-                        <field name="paid_amount" widget="monetary"/>
-                        <field name="balance_due" widget="monetary"/>
+                        <field name="paid_amount" widget="monetary" style="width: 300px;"/>
+                        <field name="balance_due" widget="monetary" style="width: 300px;"/>
                     </group>
                 </sheet>
                 
