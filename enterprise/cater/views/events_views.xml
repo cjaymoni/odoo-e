@@ -343,24 +343,12 @@
                 <separator/>
                 
                 <!-- Time-based Filters -->
-                <filter string="Today" name="today" 
-                        domain="[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),
-                                ('event_date','&lt;=', datetime.datetime.now().strftime('%Y-%m-%d 23:59:59'))]"/>
-                <filter string="Tomorrow" name="tomorrow" 
-                        domain="[('event_date','&gt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')),
-                                ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59'))]"/>
-                <filter string="This Week's Events" name="this_week_events" 
-                        domain="[('event_date','&gt;=', (datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
-                                ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=6-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]"/>
-                <filter string="Upcoming Bookings (Next 30 Days)" name="upcoming_bookings" 
-                        domain="[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d')),
-                                ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
-                <filter string="Next Week" name="next_week" 
-                        domain="[('event_date','&gt;=', (datetime.datetime.now() + datetime.timedelta(days=7-datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
-                                ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=13-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]"/>
-                <filter string="This Month" name="this_month" 
-                        domain="[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-01')),
-                                ('event_date','&lt;=', (datetime.datetime.now().replace(day=1) + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1))]"/>
+                <filter string="Today" name="today" domain="[]" context="{'cater_filter_today': 1}"/>
+                <filter string="Tomorrow" name="tomorrow" domain="[]" context="{'cater_filter_tomorrow': 1}"/>
+                <filter string="This Week" name="this_week_events" domain="[]" context="{'cater_filter_this_week': 1}"/>
+                <filter string="Next 30 Days" name="upcoming_bookings" domain="[]" context="{'cater_filter_next_30': 1}"/>
+                <filter string="Next Week" name="next_week" domain="[]" context="{'cater_filter_next_week': 1}"/>
+                <filter string="This Month" name="this_month" domain="[]" context="{'cater_filter_this_month': 1}"/>
                 <separator/>
                 
                 <!-- Confirmation Status Filters -->
@@ -375,13 +363,26 @@
                 <separator/>
                 
                 <!-- Advanced Grouping -->
-                <group expand="0" string="Group By">
+                <group expand="1" string="Group By">
+                    <filter string="Status" name="group_by_status" context="{'group_by':'state'}" 
+                            help="Group bookings by their current status (Draft, Confirmed, In Progress, Completed, Cancelled)"/>
+                    <filter string="Status ▸ Pending" name="group_by_status_pending" context="{'group_by':'state'}"
+                        domain="[('state','=','draft')]"/>
+                    <filter string="Status ▸ Confirmed" name="group_by_status_confirmed" context="{'group_by':'state'}"
+                        domain="[('state','=','confirmed')]"/>
+                    <filter string="Status ▸ Completed" name="group_by_status_completed" context="{'group_by':'state'}"
+                        domain="[('state','=','completed')]"/>
+                    <filter string="Event Type" name="group_by_event_type" context="{'group_by':'event_type'}"
+                            help="Group bookings by event type (Wedding, Corporate, Birthday, etc)"/>
+                    <filter string="Service Type" name="group_by_service_type" context="{'group_by':'service_type_group'}"
+                        help="Group bookings by their dominant service type (Equipment, Staff, etc)"/>
+                    <separator/>
                     <filter string="Customer" name="group_customer" context="{'group_by':'partner_id'}"/>
-                    <filter string="Event Type" name="group_event_type" context="{'group_by':'event_type'}"/>
-                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
-                    <filter string="Event Date" name="group_date" context="{'group_by':'event_date'}"/>
+                    <filter string="Event Date" name="group_date" context="{'group_by':'event_date:day'}"/>
                     <filter string="Venue" name="group_venue" context="{'group_by':'venue'}"/>
                     <filter string="Month" name="group_month" context="{'group_by':'event_date:month'}"/>
+                    <filter string="Week" name="group_week" context="{'group_by':'event_date:week'}"/>
+                    <filter string="Year" name="group_year" context="{'group_by':'event_date:year'}"/>
                 </group>
             </search>
         </field>
@@ -409,8 +410,7 @@
         <field name="name">Today's Events</field>
         <field name="res_model">cater.event.booking</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),
-                              ('event_date','&lt;=', datetime.datetime.now().strftime('%Y-%m-%d 23:59:59'))]</field>
+        <field name="domain">[]</field>
         <field name="context">{'search_default_today': 1}</field>
     </record>
 
@@ -419,8 +419,7 @@
         <field name="name">Upcoming Bookings</field>
         <field name="res_model">cater.event.booking</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d')),
-                              ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+        <field name="domain">[]</field>
         <field name="context">{'search_default_upcoming_bookings': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -438,8 +437,7 @@
         <field name="name">This Week's Events</field>
         <field name="res_model">cater.event.booking</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('event_date','&gt;=', (datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
-                              ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=6-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]</field>
+        <field name="domain">[]</field>
         <field name="context">{'search_default_this_week_events': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -457,7 +455,7 @@
         <field name="name">Pending Confirmations</field>
         <field name="res_model">cater.event.booking</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('state','=','draft')]</field>
+        <field name="domain">[]</field>
         <field name="context">{'search_default_pending_confirmations': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -466,6 +464,40 @@
             <p>
                 This view shows all event bookings that are awaiting confirmation.
                 Review and confirm bookings to move them forward in the workflow.
+            </p>
+        </field>
+    </record>
+
+    <!-- Bookings Grouped by Status Action -->
+    <record id="catering_event_booking_by_status_action" model="ir.actions.act_window">
+        <field name="name">Bookings by Status</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_group_by_status': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No bookings found!
+            </p>
+            <p>
+                This view organizes all bookings grouped by their status.
+                Quickly see how many bookings are pending, confirmed, in progress, or completed.
+            </p>
+        </field>
+    </record>
+
+    <!-- Bookings Grouped by Event Type Action -->
+    <record id="catering_event_booking_by_event_type_action" model="ir.actions.act_window">
+        <field name="name">Bookings by Event Type</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_group_by_event_type': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No bookings found!
+            </p>
+            <p>
+                This view organizes all bookings grouped by event type.
+                See your bookings organized by Wedding, Corporate, Birthday, and other event categories.
             </p>
         </field>
     </record>

@@ -1,6 +1,8 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime, timedelta
+from odoo.osv import expression
+from datetime import datetime, timedelta, time
+from dateutil.relativedelta import relativedelta
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -64,6 +66,16 @@ class EventBooking(models.Model):
     # Menu and Services
     menu_line_ids = fields.One2many('cater.booking.menu.line', 'booking_id', 'Menu Items')
     service_line_ids = fields.One2many('cater.booking.service.line', 'booking_id', 'Additional Services')
+    service_type_group = fields.Selection([
+        ('equipment', 'Equipment Rental'),
+        ('staff', 'Additional Staff'),
+        ('decoration', 'Decoration'),
+        ('transport', 'Transportation'),
+        ('cleanup', 'Cleanup Service'),
+        ('other', 'Other'),
+        ('mixed', 'Mixed Services'),
+    ], string='Primary Service Type', compute='_compute_service_type_group', store=True, readonly=True,
+       help="Helps group bookings by their dominant service type in reporting views.")
     
     # Pricing (removed tracking from computed fields)
     currency_id = fields.Many2one('res.currency', 'Currency', default=lambda self: self.env.company.currency_id)
@@ -111,6 +123,67 @@ class EventBooking(models.Model):
     invoice_ids = fields.One2many('account.move', 'catering_booking_id', 'Invoices')
     feedback_ids = fields.One2many('cater.feedback', 'booking_id', 'Feedback')
     
+    def _is_filter_active(self, search_key, context_key=None):
+        ctx = self.env.context
+        return bool((search_key and ctx.get(search_key)) or (context_key and ctx.get(context_key)))
+
+    def _get_dynamic_date_ranges(self):
+        today = fields.Date.context_today(self)
+        ranges = []
+
+        def add_range(start_date, end_date):
+            start_dt = datetime.combine(start_date, time.min)
+            end_dt = datetime.combine(end_date, time.max)
+            ranges.append((start_dt, end_dt))
+
+        if not today:
+            return ranges
+
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        if self._is_filter_active('search_default_today', 'cater_filter_today'):
+            add_range(today, today)
+        if self._is_filter_active('search_default_tomorrow', 'cater_filter_tomorrow'):
+            next_day = today + timedelta(days=1)
+            add_range(next_day, next_day)
+        if self._is_filter_active('search_default_this_week_events', 'cater_filter_this_week'):
+            add_range(week_start, week_end)
+        if self._is_filter_active('search_default_next_week', 'cater_filter_next_week'):
+            next_week_start = week_end + timedelta(days=1)
+            next_week_end = next_week_start + timedelta(days=6)
+            add_range(next_week_start, next_week_end)
+        if self._is_filter_active('search_default_upcoming_bookings', 'cater_filter_next_30'):
+            add_range(today, today + timedelta(days=30))
+        if self._is_filter_active('search_default_this_month', 'cater_filter_this_month'):
+            month_start = today.replace(day=1)
+            next_month_start = month_start + relativedelta(months=1)
+            month_end = next_month_start - timedelta(days=1)
+            add_range(month_start, month_end)
+
+        return ranges
+
+    def _apply_dynamic_date_filters(self, domain):
+        ranges = self._get_dynamic_date_ranges()
+        if not ranges:
+            return domain
+
+        normalized = domain[:] if domain else []
+        for start_dt, end_dt in ranges:
+            normalized = expression.AND([
+                normalized,
+                [
+                    ('event_date', '>=', fields.Datetime.to_string(start_dt)),
+                    ('event_date', '<=', fields.Datetime.to_string(end_dt)),
+                ],
+            ])
+        return normalized
+
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None):
+        domain = self._apply_dynamic_date_filters(domain or [])
+        return super()._search(domain, offset=offset, limit=limit, order=order)
+
 
     
     @api.depends('feedback_ids')
@@ -158,6 +231,16 @@ class EventBooking(models.Model):
             booking.subtotal = booking.menu_total + booking.service_total
             booking.tax_amount = booking.subtotal * 0.15  # Ghana VAT 15%
             booking.total_amount = booking.subtotal + booking.tax_amount
+
+    @api.depends('service_line_ids.service_id.service_type')
+    def _compute_service_type_group(self):
+        for booking in self:
+            service_types = booking.service_line_ids.mapped('service_id.service_type')
+            if not service_types:
+                booking.service_type_group = False
+            else:
+                unique_types = set(filter(None, service_types))
+                booking.service_type_group = unique_types.pop() if len(unique_types) == 1 else 'mixed'
     
     def write(self, vals):
         # Disable tracking for computed fields to reduce chatter noise
