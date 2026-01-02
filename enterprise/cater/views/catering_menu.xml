@@ -27,6 +27,27 @@
               action="catering_event_booking_today_action" 
               sequence="20"
               groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_bookings_this_week" 
+              name="This Week's Events" 
+              parent="catering_bookings_menu" 
+              action="catering_event_booking_this_week_action" 
+              sequence="30"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_bookings_upcoming" 
+              name="Upcoming Bookings" 
+              parent="catering_bookings_menu" 
+              action="catering_event_booking_upcoming_action" 
+              sequence="40"
+              groups="catering_staff_group,catering_manager_group"/>
+              
+    <menuitem id="catering_bookings_pending" 
+              name="Pending Confirmations" 
+              parent="catering_bookings_menu" 
+              action="catering_event_booking_pending_action" 
+              sequence="50"
+              groups="catering_staff_group,catering_manager_group"/>
 
     <!-- Menu Management -->
     <menuitem id="catering_menu_mgmt" 

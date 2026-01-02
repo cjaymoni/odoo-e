@@ -349,15 +349,23 @@
                 <filter string="Tomorrow" name="tomorrow" 
                         domain="[('event_date','&gt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')),
                                 ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59'))]"/>
-                <filter string="This Week" name="this_week" 
+                <filter string="This Week's Events" name="this_week_events" 
                         domain="[('event_date','&gt;=', (datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
                                 ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=6-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]"/>
+                <filter string="Upcoming Bookings (Next 30 Days)" name="upcoming_bookings" 
+                        domain="[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d')),
+                                ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
                 <filter string="Next Week" name="next_week" 
                         domain="[('event_date','&gt;=', (datetime.datetime.now() + datetime.timedelta(days=7-datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
                                 ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=13-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]"/>
                 <filter string="This Month" name="this_month" 
                         domain="[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-01')),
                                 ('event_date','&lt;=', (datetime.datetime.now().replace(day=1) + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1))]"/>
+                <separator/>
+                
+                <!-- Confirmation Status Filters -->
+                <filter string="Pending Confirmations" name="pending_confirmations" 
+                        domain="[('state','=','draft')]"/>
                 <separator/>
                 
                 <!-- Business Filters -->
@@ -404,5 +412,61 @@
         <field name="domain">[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),
                               ('event_date','&lt;=', datetime.datetime.now().strftime('%Y-%m-%d 23:59:59'))]</field>
         <field name="context">{'search_default_today': 1}</field>
+    </record>
+
+    <!-- Upcoming Bookings Action (Next 30 Days) -->
+    <record id="catering_event_booking_upcoming_action" model="ir.actions.act_window">
+        <field name="name">Upcoming Bookings</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('event_date','&gt;=', datetime.datetime.now().strftime('%Y-%m-%d')),
+                              ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+        <field name="context">{'search_default_upcoming_bookings': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No upcoming bookings in the next 30 days!
+            </p>
+            <p>
+                This view shows all events scheduled for the next 30 days.
+                Stay on top of your upcoming commitments and prepare accordingly.
+            </p>
+        </field>
+    </record>
+
+    <!-- This Week's Events Action -->
+    <record id="catering_event_booking_this_week_action" model="ir.actions.act_window">
+        <field name="name">This Week's Events</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('event_date','&gt;=', (datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().weekday())).strftime('%Y-%m-%d')),
+                              ('event_date','&lt;=', (datetime.datetime.now() + datetime.timedelta(days=6-datetime.datetime.now().weekday())).strftime('%Y-%m-%d'))]</field>
+        <field name="context">{'search_default_this_week_events': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No events scheduled for this week!
+            </p>
+            <p>
+                This view displays all events scheduled for the current week.
+                Focus on this week's deliverables and ensure everything is ready.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pending Confirmations Action -->
+    <record id="catering_event_booking_pending_action" model="ir.actions.act_window">
+        <field name="name">Pending Confirmations</field>
+        <field name="res_model">cater.event.booking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state','=','draft')]</field>
+        <field name="context">{'search_default_pending_confirmations': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                All bookings are confirmed!
+            </p>
+            <p>
+                This view shows all event bookings that are awaiting confirmation.
+                Review and confirm bookings to move them forward in the workflow.
+            </p>
+        </field>
     </record>
 </odoo>
