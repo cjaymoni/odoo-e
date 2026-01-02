@@ -44,11 +44,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends ./wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
-    && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
-    && rm -rf /var/lib/apt/lists/*
+# Install wkhtmltopdf with architecture detection
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "arm64" ]; then \
+        wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_arm64.deb -O wkhtmltox.deb; \
+    else \
+        wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb -O wkhtmltox.deb; \
+    fi && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ./wkhtmltox.deb && \
+    rm wkhtmltox.deb && \
+    rm -rf /var/lib/apt/lists/*
     
 RUN npm install -g rtlcss less less-plugin-clean-css
 
