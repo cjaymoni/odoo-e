@@ -56,6 +56,10 @@
                                 invisible="invoice_count == 0">
                             <field name="invoice_count" widget="statinfo" string="Invoices"/>
                         </button>
+                        <button name="action_view_lead" type="object" class="oe_stat_button" icon="fa-star"
+                                invisible="not lead_id">
+                            <field name="lead_count" widget="statinfo" string="CRM Lead"/>
+                        </button>
                     </div>
                     
                     <div class="oe_title">
@@ -65,30 +69,36 @@
                     </div>
                     
                     <group>
-                        <group name="basic_info">
-                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        <group name="customer_info" string="Customer Information">
                             <field name="partner_id" options="{'create': true, 'create_edit': true}"/>
                             <field name="partner_mobile" placeholder="e.g., +23324XXXXXXX"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group name="event_info" string="Event Details">
                             <field name="event_name"/>
                             <field name="event_type"/>
                             <field name="event_date"/>
                             <field name="event_duration"/>
                         </group>
-                        <group name="venue_info">
+                    </group>
+                    
+                    <group>
+                        <group name="venue_info" string="Venue Information">
                             <field name="venue"/>
                             <field name="venue_address"/>
                             <field name="guest_count"/>
+                        </group>
+                        <group name="package_pricing" string="Package &amp; Pricing">
+                            <field name="package_id" 
+                                   options="{'no_create': True}" 
+                                   domain="[('active','=',True), ('company_id','=',company_id)]"
+                                   placeholder="Select a package to auto-fill menu and services..."/>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="deposit_amount" widget="monetary"/>
+                            <field name="paid_amount" widget="monetary"/>
+                            <field name="balance_due" widget="monetary"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
-                    </group>
-                    
-                    <!-- Package Selection Section -->
-                    <group string="📦 Package Selection (Optional)" name="package_section">
-                        <field name="package_id" 
-                               options="{'no_create': True}" 
-                               domain="[('active','=',True), ('company_id','=',company_id)]"
-                               placeholder="Select a package to auto-fill menu and services..."
-                               help="Choose a pre-configured package to automatically populate menu items and services. You can modify them afterwards."/>
                     </group>
                     
                     <notebook>
@@ -120,8 +130,12 @@
                         
                         <page string="Special Requirements" name="requirements">
                             <group>
-                                <field name="special_requests" nolabel="1" placeholder="Any special requests for the event..."/>
-                                <field name="dietary_restrictions" nolabel="1" placeholder="Dietary restrictions or allergies..."/>
+                                <group>
+                                    <field name="special_requests" nolabel="1" placeholder="Any special requests for the event..."/>
+                                </group>
+                                <group>
+                                    <field name="dietary_restrictions" nolabel="1" placeholder="Dietary restrictions or allergies..."/>
+                                </group>
                             </group>
                         </page>
                         
@@ -141,44 +155,47 @@
                         </page>
                     </notebook>
                     
+                    <group>
+                        <group string="Pricing Summary">
+                            <field name="menu_total" widget="monetary"/>
+                            <field name="service_total" widget="monetary"/>
+                            <field name="subtotal" widget="monetary"/>
+                            <field name="tax_amount" widget="monetary"/>
+                        </group>
+                        <group string="Currency Conversions">
+                            <field name="show_currency_conversions" widget="boolean_toggle"/>
+                            <field name="total_amount_usd" widget="monetary" 
+                                   invisible="not show_currency_conversions"
+                                   readonly="1"/>
+                            <label for="usd_rate_used" string="USD Rate" invisible="not show_currency_conversions"/>
+                            <div invisible="not show_currency_conversions">
+                                <field name="usd_rate_used" readonly="1" class="oe_inline"/>
+                            </div>
+                            <field name="total_amount_gbp" widget="monetary"
+                                   invisible="not show_currency_conversions"
+                                   readonly="1"/>
+                            <label for="gbp_rate_used" string="GBP Rate" invisible="not show_currency_conversions"/>
+                            <div invisible="not show_currency_conversions">
+                                <field name="gbp_rate_used" readonly="1" class="oe_inline"/>
+                            </div>
+                            <field name="usd_currency_id" invisible="1"/>
+                            <field name="gbp_currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    
                     <group class="oe_subtotal_footer oe_right">
-                        <field name="menu_total" widget="monetary"/>
-                        <field name="service_total" widget="monetary"/>
-                        <field name="subtotal" widget="monetary"/>
-                        <field name="tax_amount" widget="monetary"/>
                         <div class="oe_subtotal_footer_separator">
+                            <label for="total_amount" string="Total"/>
                             <field name="total_amount" widget="monetary" class="oe_subtotal_footer_total"/>
                         </div>
                         <field name="manual_total_override" widget="boolean_toggle"/>
-                        <field name="deposit_amount" widget="monetary"/>
-                        <field name="paid_amount" widget="monetary" style="width: 200px;"/>
-                        <field name="balance_due" widget="monetary" style="width: 200px;"/>
-                        <field name="show_currency_conversions" widget="boolean_toggle"/>
-                        <field name="total_amount_usd" widget="monetary" 
-                               invisible="not show_currency_conversions"
-                               readonly="1"/>
-                        <div invisible="not show_currency_conversions" class="text-muted o_cell o_wrap_label text-break " style="font-size: 0.80em; margin-top: -8px; margin-bottom: 4px;">
-                            <span>Rate: 1 GHS = </span>
-                            <field name="usd_rate_used" nolabel="1" readonly="1" style="display: inline;"/>
-                            <span> USD</span>
-                        </div>
-                        <field name="total_amount_gbp" widget="monetary"
-                               invisible="not show_currency_conversions"
-                               readonly="1"/>
-                        <div invisible="not show_currency_conversions" class="text-muted o_cell o_wrap_label text-break " style="font-size: 0.80em; margin-top: -8px; margin-bottom: 4px;">
-                            <span>Rate: 1 GHS = </span>
-                            <field name="gbp_rate_used" nolabel="1" readonly="1" style="display: inline;"/>
-                            <span> GBP</span>
-                        </div>
-                        <field name="usd_currency_id" invisible="1"/>
-                        <field name="gbp_currency_id" invisible="1"/>
                     </group>
                 </sheet>
                 
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
                     <field name="activity_ids"/>
-                    <field name="message_ids"/>
+                    <field name="message_ids" options="{'post_refresh': 'recipients'}"/>
                 </div>
             </form>
         </field>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Automated Action: Auto-assign leads based on expected revenue -->
+        <record id="auto_action_assign_high_value_leads" model="base.automation">
+            <field name="name">Auto-assign High Value Leads</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">True</field>
+            <field name="trigger">on_create_or_write</field>
+            <field name="filter_domain">[('expected_revenue', '>=', 5000.0), ('user_id', '=', False)]</field>
+            <field name="code">
+# Assign to sales manager for high-value leads
+sales_manager = env.ref('cater.user_catering_manager', raise_if_not_found=False)
+if sales_manager and not record.user_id:
+    record.user_id = sales_manager.id
+    record.message_post(body='Auto-assigned to Sales Manager due to high expected revenue.')
+            </field>
+        </record>
+
+        <!-- Automated Action: Tag urgent leads (event within 7 days) -->
+        <record id="auto_action_tag_urgent_leads" model="base.automation">
+            <field name="name">Tag Urgent Leads</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">True</field>
+            <field name="trigger">on_create_or_write</field>
+            <field name="filter_domain">[('event_date', '!=', False)]</field>
+            <field name="code">
+from datetime import datetime, timedelta
+
+urgent_tag = env.ref('cater.tag_urgent', raise_if_not_found=False)
+if urgent_tag and record.event_date:
+    days_until_event = (record.event_date - datetime.now().date()).days
+    if days_until_event &lt;= 7 and days_until_event &gt;= 0:
+        if urgent_tag not in record.tag_ids:
+            record.tag_ids = [(4, urgent_tag.id)]
+            record.message_post(body='Tagged as Urgent - Event is within 7 days.')
+            </field>
+        </record>
+
+        <!-- Automated Action: Remove urgent tag when event date passes -->
+        <record id="auto_action_remove_urgent_tag" model="base.automation">
+            <field name="name">Remove Urgent Tag After Event</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">True</field>
+            <field name="trigger">on_time</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="filter_domain">[('event_date', '!=', False), ('stage_id.is_won', '=', False)]</field>
+            <field name="code">
+from datetime import datetime
+
+urgent_tag = env.ref('cater.tag_urgent', raise_if_not_found=False)
+if urgent_tag and record.event_date:
+    if record.event_date &lt; datetime.now().date():
+        if urgent_tag in record.tag_ids:
+            record.tag_ids = [(3, urgent_tag.id)]
+            record.message_post(body='Removed Urgent tag - Event date has passed.')
+            </field>
+        </record>
+
+        <!-- Automated Action: Notify team when lead is won -->
+        <record id="auto_action_notify_lead_won" model="base.automation">
+            <field name="name">Notify Team When Lead Won</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">True</field>
+            <field name="trigger">on_write</field>
+            <field name="filter_pre_domain">[('stage_id.is_won', '=', False)]</field>
+            <field name="filter_domain">[('stage_id.is_won', '=', True)]</field>
+            <field name="code">
+# Notify assigned user
+if record.user_id:
+    record.activity_schedule(
+        'mail.mail_activity_data_todo',
+        summary='Convert Lead to Booking',
+        note='This lead has been marked as Won. Please convert it to an event booking.',
+        user_id=record.user_id.id,
+    )
+    record.message_post(
+        body='Lead marked as Won! Next step: Convert to Event Booking.',
+        subject='Lead Won - Action Required'
+    )
+            </field>
+        </record>
+
+        <!-- Automated Action: Add high-value tag based on revenue -->
+        <record id="auto_action_tag_high_value" model="base.automation">
+            <field name="name">Tag High-Value Leads</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">True</field>
+            <field name="trigger">on_create_or_write</field>
+            <field name="filter_domain">[('expected_revenue', '>=', 5000.0)]</field>
+            <field name="code">
+high_value_tag = env.ref('cater.tag_high_value', raise_if_not_found=False)
+if high_value_tag and high_value_tag not in record.tag_ids:
+    record.tag_ids = [(4, high_value_tag.id)]
+    record.message_post(body='Tagged as High Value - Expected revenue exceeds ₵5,000.')
+            </field>
+        </record>
+
+    </data>
+</odoo>

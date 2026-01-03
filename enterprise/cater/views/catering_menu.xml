@@ -14,6 +14,14 @@
               sequence="10"
               groups="catering_staff_group,catering_manager_group"/>
     
+    <!-- Customer Requests submenu under Bookings -->
+    <menuitem id="catering_requests_menu" 
+              name="Customer Requests" 
+              parent="catering_bookings_menu" 
+              action="action_customer_request" 
+              sequence="5"
+              groups="catering_staff_group,catering_manager_group"/>
+    
     <!-- Events submenu under Bookings -->
     <menuitem id="catering_events_menu" 
               name="Events" 

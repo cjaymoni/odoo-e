@@ -45,3 +45,5 @@ access_catering_package_public,cater.package.public,model_cater_package,,1,0,0,0
 access_res_groups_catering,res.groups.catering,base.model_res_groups,catering_manager_group,1,1,1,0
 access_currency_rate_manager,cater.currency.rate.manager,model_cater_currency_rate,catering_manager_group,1,1,1,1
 access_currency_rate_staff,cater.currency.rate.staff,model_cater_currency_rate,catering_staff_group,1,0,0,0
+access_customer_request_manager,cater.customer.request.manager,model_cater_customer_request,catering_manager_group,1,1,1,1
+access_customer_request_staff,cater.customer.request.staff,model_cater_customer_request,catering_staff_group,1,1,1,0

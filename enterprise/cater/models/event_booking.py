@@ -146,6 +146,9 @@ class EventBooking(models.Model):
     
     # Related Records
     sale_order_id = fields.Many2one('sale.order', 'Sales Order')
+    lead_id = fields.Many2one('crm.lead', 'CRM Lead', readonly=True, 
+                              help='CRM Lead that was converted to this booking')
+    lead_count = fields.Integer('Lead Count', compute='_compute_lead_count')
     invoice_ids = fields.One2many('account.move', 'catering_booking_id', 'Invoices')
     invoice_count = fields.Integer('Invoice Count', compute='_compute_invoice_count')
     feedback_ids = fields.One2many('cater.feedback', 'booking_id', 'Feedback')
@@ -154,6 +157,12 @@ class EventBooking(models.Model):
     def _compute_invoice_count(self):
         for booking in self:
             booking.invoice_count = len(booking.invoice_ids)
+    
+    @api.depends('lead_id')
+    def _compute_lead_count(self):
+        """Compute number of related leads"""
+        for booking in self:
+            booking.lead_count = 1 if booking.lead_id else 0
     
     def _is_filter_active(self, search_key, context_key=None):
         ctx = self.env.context
@@ -622,6 +631,21 @@ class EventBooking(models.Model):
             'view_mode': 'tree,form',
             'domain': [('catering_booking_id', '=', self.id)],
             'context': {'default_catering_booking_id': self.id},
+        }
+    
+    def action_view_lead(self):
+        """View related CRM lead"""
+        self.ensure_one()
+        if not self.lead_id:
+            raise UserError(_('This booking was not created from a CRM lead.'))
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('CRM Lead'),
+            'res_model': 'crm.lead',
+            'res_id': self.lead_id.id,
+            'view_mode': 'form',
+            'target': 'current',
         }
     
     def _send_whatsapp_confirmation(self):

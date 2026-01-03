@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Extend CRM Lead Form View -->
+    <record id="view_crm_lead_form_inherit_cater" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.cater</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add buttons to button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_booking" type="object" 
+                        class="oe_stat_button" icon="fa-calendar" 
+                        invisible="not booking_id">
+                    <field name="booking_count" widget="statinfo" string="Booking"/>
+                </button>
+                <button name="action_view_customer_request" type="object" 
+                        class="oe_stat_button" icon="fa-file-text-o" 
+                        invisible="not customer_request_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">View Request</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Add Convert to Booking button in header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_convert_to_booking" string="Convert to Booking" type="object" 
+                        class="oe_highlight" 
+                        invisible="booking_id or not partner_id"
+                        groups="sales_team.group_sale_salesman"/>
+            </xpath>
+            
+            <!-- Add catering-specific fields in opportunity section -->
+            <xpath expr="//field[@name='expected_revenue']" position="after">
+                <field name="event_date"/>
+                <field name="guest_count"/>
+                <field name="venue_location"/>
+                <field name="interested_package_id"/>
+                <field name="interested_menu_item_ids" widget="many2many_tags"/>
+            </xpath>
+            
+            <!-- Add hidden fields for tracking -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="customer_request_id" invisible="1"/>
+                <field name="booking_id" invisible="1"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>

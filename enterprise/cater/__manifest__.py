@@ -17,6 +17,7 @@
     'website': 'https://www.yourcompany.com',
     'depends': [
         'base',
+        'base_automation',
         'sale',
         'account',
         'crm',
@@ -38,6 +39,8 @@
         'data/cron_jobs.xml',
         'data/currency_rates.xml',
         'data/ghana_vat_taxes.xml',
+        'data/crm_stages.xml',
+        # 'data/crm_automation.xml',  # Disabled - Odoo 18 automation syntax different
         
         # Views
         'views/menu_views.xml',
@@ -51,6 +54,8 @@
         'views/report_views.xml',
         'views/portal_views.xml',
         'views/currency_rate_views.xml',
+        'views/customer_request_views.xml',
+        'views/crm_lead_views.xml',
         'views/catering_menu.xml',
         
     ],
