@@ -10,22 +10,30 @@
         <field name="visible">1</field>
     </record>
     
-    <!-- Base Staff Group -->
+    <!-- Event Planner Group -->
     <record id="catering_staff_group" model="res.groups">
-        <field name="name">Staff</field>
+        <field name="name">Event Planner</field>
         <field name="category_id" ref="module_category_catering"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         <field name="comment">Can manage bookings, menu items, and customer interactions</field>
         <field name="users" eval="[(4, ref('base.user_admin'))]"/>
     </record>
     
-    <!-- Manager Group (inherits from Staff) -->
+    <!-- Admin Group (inherits from Event Planner) -->
     <record id="catering_manager_group" model="res.groups">
-        <field name="name">Manager</field>
+        <field name="name">Admin</field>
         <field name="category_id" ref="module_category_catering"/>
         <field name="implied_ids" eval="[(4, ref('catering_staff_group'))]"/>
         <field name="comment">Full access to all catering operations, reporting, and configuration</field>
         <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+    
+    <!-- Accountant Group -->
+    <record id="catering_accountant_group" model="res.groups">
+        <field name="name">Accountant</field>
+        <field name="category_id" ref="module_category_catering"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Financial access: view bookings, manage invoices and payments</field>
     </record>
     
     <!-- Client Group (Limited Internal User) -->

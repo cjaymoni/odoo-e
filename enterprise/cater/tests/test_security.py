@@ -10,21 +10,28 @@ class TestSecurityAccess(TransactionCase):
         super().setUp()
         
         # Create test groups
-        self.staff_group = self.env.ref('cater.catering_staff_group')
-        self.manager_group = self.env.ref('cater.catering_manager_group')
-        self.client_group = self.env.ref('cater.catering_client_group')
+        self.staff_group = self.env.ref('cater.catering_staff_group')  # Event Planner
+        self.manager_group = self.env.ref('cater.catering_manager_group')  # Admin
+        self.accountant_group = self.env.ref('cater.catering_accountant_group')  # Accountant
+        self.client_group = self.env.ref('cater.catering_client_group')  # Client
         
         # Create test users
         self.staff_user = self.env['res.users'].create({
-            'name': 'Staff User',
-            'login': 'staff@test.com',
+            'name': 'Event Planner User',
+            'login': 'eventplanner@test.com',
             'groups_id': [(6, 0, [self.staff_group.id])]
         })
         
         self.manager_user = self.env['res.users'].create({
-            'name': 'Manager User',
-            'login': 'manager@test.com',
+            'name': 'Admin User',
+            'login': 'admin@test.com',
             'groups_id': [(6, 0, [self.manager_group.id])]
+        })
+        
+        self.accountant_user = self.env['res.users'].create({
+            'name': 'Accountant User',
+            'login': 'accountant@test.com',
+            'groups_id': [(6, 0, [self.accountant_group.id])]
         })
         
         self.client_user = self.env['res.users'].create({
@@ -193,6 +200,74 @@ class TestSecurityAccess(TransactionCase):
         item = menu_model.browse(menu_item.id)
         with self.assertRaises(AccessError):
             item.write({'price_per_person': 30.0})
+
+    def test_accountant_can_read_bookings(self):
+        """Test accountant can read bookings but not modify"""
+        # Create booking as admin
+        booking = self.env['cater.event.booking'].create({
+            'event_name': 'Wedding Reception',
+            'event_date': '2024-06-15',
+            'num_guests': 150,
+            'partner_id': self.client_partner.id
+        })
+        
+        # Switch to accountant user
+        booking_model = self.env['cater.event.booking'].with_user(self.accountant_user)
+        
+        # Should be able to read
+        accountant_booking = booking_model.browse(booking.id)
+        self.assertEqual(accountant_booking.event_name, 'Wedding Reception')
+        
+        # Should NOT be able to modify
+        with self.assertRaises(AccessError):
+            accountant_booking.write({'num_guests': 200})
+
+    def test_accountant_can_manage_invoices(self):
+        """Test accountant can create, read, and update invoices"""
+        # Switch to accountant user
+        invoice_model = self.env['account.move'].with_user(self.accountant_user)
+        
+        # Should be able to create invoice
+        invoice = invoice_model.create({
+            'partner_id': self.client_partner.id,
+            'move_type': 'out_invoice',
+        })
+        self.assertTrue(invoice.id)
+        
+        # Should be able to update
+        invoice.write({'ref': 'ACC-001'})
+        self.assertEqual(invoice.ref, 'ACC-001')
+
+    def test_accountant_can_manage_payments(self):
+        """Test accountant can manage payments"""
+        # Switch to accountant user
+        payment_model = self.env['account.payment'].with_user(self.accountant_user)
+        
+        # Should be able to create payment
+        payment = payment_model.create({
+            'partner_id': self.client_partner.id,
+            'amount': 1000.0,
+            'payment_type': 'inbound',
+            'partner_type': 'customer',
+        })
+        self.assertTrue(payment.id)
+        self.assertEqual(payment.amount, 1000.0)
+
+    def test_accountant_cannot_access_menu_config(self):
+        """Test accountant cannot access menu configuration"""
+        # Create menu item as admin
+        menu_item = self.env['cater.menu.item'].create({
+            'name': 'Grilled Salmon',
+            'category_id': self.category.id,
+            'price_per_person': 25.0
+        })
+        
+        # Switch to accountant user
+        menu_model = self.env['cater.menu.item'].with_user(self.accountant_user)
+        
+        # Should NOT be able to read menu items
+        with self.assertRaises(AccessError):
+            menu_model.browse(menu_item.id).read(['name'])
 
     def test_sales_order_client_access(self):
         """Test client access to sales orders"""

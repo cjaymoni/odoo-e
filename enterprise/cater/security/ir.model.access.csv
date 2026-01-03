@@ -47,3 +47,14 @@ access_currency_rate_manager,cater.currency.rate.manager,model_cater_currency_ra
 access_currency_rate_staff,cater.currency.rate.staff,model_cater_currency_rate,catering_staff_group,1,0,0,0
 access_customer_request_manager,cater.customer.request.manager,model_cater_customer_request,catering_manager_group,1,1,1,1
 access_customer_request_staff,cater.customer.request.staff,model_cater_customer_request,catering_staff_group,1,1,1,0
+access_event_booking_accountant,cater.event.booking.accountant,model_cater_event_booking,catering_accountant_group,1,0,0,0
+access_booking_menu_line_accountant,cater.booking.menu.line.accountant,model_cater_booking_menu_line,catering_accountant_group,1,0,0,0
+access_booking_service_line_accountant,cater.booking.service.line.accountant,model_cater_booking_service_line,catering_accountant_group,1,0,0,0
+access_sale_order_accountant,sale.order.accountant,sale.model_sale_order,catering_accountant_group,1,1,1,0
+access_sale_order_line_accountant,sale.order.line.accountant,sale.model_sale_order_line,catering_accountant_group,1,1,1,0
+access_account_move_accountant,account.move.accountant,account.model_account_move,catering_accountant_group,1,1,1,0
+access_account_move_line_accountant,account.move.line.accountant,account.model_account_move_line,catering_accountant_group,1,1,1,0
+access_account_payment_accountant,account.payment.accountant,account.model_account_payment,catering_accountant_group,1,1,1,0
+access_product_product_accountant,product.product.accountant,product.model_product_product,catering_accountant_group,1,0,0,0
+access_product_template_accountant,product.template.accountant,product.model_product_template,catering_accountant_group,1,0,0,0
+access_res_partner_accountant,res.partner.accountant,base.model_res_partner,catering_accountant_group,1,0,0,0
