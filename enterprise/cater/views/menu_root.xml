@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Base Event Planning menu so other views can reference it safely -->
+        <menuitem id="catering_main_menu"
+                  name="Event Planning"
+                  sequence="10"
+                  web_icon="cater,static/description/icon.png"
+                  groups="catering_staff_group,catering_manager_group"/>
+    </data>
+</odoo>

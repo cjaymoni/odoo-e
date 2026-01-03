@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Event Planning Main Menu -->
-    <menuitem id="catering_main_menu" 
-              name="Event Planning" 
-              sequence="10" 
-              web_icon="cater,static/description/icon.png"
-              groups="catering_staff_group,catering_manager_group"/>
-
     <!-- Bookings Menu -->
     <menuitem id="catering_bookings_menu" 
               name="Bookings" 

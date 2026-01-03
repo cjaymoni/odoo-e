@@ -8,6 +8,7 @@
             <field name="amount_type">percent</field>
             <field name="amount">15.0</field>
             <field name="type_tax_use">sale</field>
+            <field name="tax_group_id" ref="account.tax_group_taxes"/>
             <field name="price_include" eval="False"/>
             <field name="include_base_amount" eval="False"/>
             <field name="active" eval="True"/>
@@ -21,6 +22,7 @@
             <field name="amount_type">percent</field>
             <field name="amount">15.0</field>
             <field name="type_tax_use">purchase</field>
+            <field name="tax_group_id" ref="account.tax_group_taxes"/>
             <field name="price_include" eval="False"/>
             <field name="include_base_amount" eval="False"/>
             <field name="active" eval="True"/>

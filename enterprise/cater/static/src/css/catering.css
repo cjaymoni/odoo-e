@@ -198,3 +198,266 @@
     font-size: 0.85em;
     vertical-align: middle;
 }
+
+/* =================================
+   MODERN DASHBOARD EXPERIENCE
+   ================================= */
+.catering-dashboard {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    max-height: 100vh;
+    padding: 20px;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+}
+
+.catering-dashboard .dashboard-header {
+    background: #ff9a76;
+    color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.catering-dashboard .dashboard-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.catering-dashboard .dashboard-header p {
+    margin: 8px 0 0;
+    opacity: 0.85;
+}
+
+.catering-dashboard .refresh-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    padding: 10px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.catering-dashboard .refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.catering-dashboard .kpi-card {
+    border-radius: 15px;
+    border: none;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    position: relative;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.catering-dashboard .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.catering-dashboard .kpi-card.primary::before {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.catering-dashboard .kpi-card.success::before {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.catering-dashboard .kpi-card.info::before {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.catering-dashboard .kpi-card.warning::before {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.catering-dashboard .kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.catering-dashboard .kpi-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.catering-dashboard .kpi-icon.primary {
+    background: #6c7ae0;
+}
+
+.catering-dashboard .kpi-icon.success {
+    background: #ee6f9f;
+}
+
+.catering-dashboard .kpi-icon.info {
+    background: #51b4ff;
+}
+
+.catering-dashboard .kpi-icon.warning {
+    background: #ffa94d;
+}
+
+.catering-dashboard .kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 10px 0;
+}
+
+.catering-dashboard .kpi-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+.catering-dashboard .growth-indicator {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.catering-dashboard .growth-positive {
+    background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+    color: #155724;
+}
+
+.catering-dashboard .growth-negative {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    color: #721c24;
+}
+
+.catering-dashboard .content-card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.catering-dashboard .content-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.catering-dashboard .card-header-gradient {
+    background: #ffb88c;
+    color: #fff;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+}
+
+.catering-dashboard .rating-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #ff8fb1;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    box-shadow: 0 10px 25px rgba(255, 143, 177, 0.4);
+}
+
+.catering-dashboard .rating-circle .rating-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.catering-dashboard .progress-modern {
+    height: 8px;
+    border-radius: 10px;
+    background: #ecf0f1;
+    overflow: hidden;
+}
+
+.catering-dashboard .progress-modern .progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.catering-dashboard .activity-item {
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.catering-dashboard .activity-item:hover {
+    background: #e9ecef;
+    border-left-color: #667eea;
+    transform: translateX(5px);
+}
+
+.catering-dashboard .activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.catering-dashboard .table-modern {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.catering-dashboard .table-modern thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.catering-dashboard .table-modern tbody tr:hover {
+    background: #f8f9fa;
+    transform: scale(1.01);
+}
+
+.catering-dashboard .badge-modern {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.catering-dashboard .badge-success-modern {
+    background: rgba(40, 167, 69, 0.12);
+    color: #28a745;
+}
+
+.catering-dashboard .badge-warning-modern {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ff9800;
+}
+
+.catering-dashboard .badge-info-modern {
+    background: rgba(0, 123, 255, 0.12);
+    color: #007bff;
+}

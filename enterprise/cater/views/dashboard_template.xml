@@ -1,48 +1,356 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="dashboard_template" name="Catering Dashboard Template">
+        <style>
+            .catering-dashboard {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                overflow-y: auto;
+            }
+            
+            .dashboard-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                margin-bottom: 30px;
+            }
+            
+            .dashboard-header h1 {
+                margin: 0;
+                font-size: 2.5rem;
+                font-weight: 700;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .kpi-card {
+                border-radius: 15px;
+                border: none !important;
+                overflow: hidden;
+                transition: all 0.3s ease;
+                height: 100%;
+                position: relative;
+            }
+            
+            .kpi-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+            }
+            
+            .kpi-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+            }
+            
+            .kpi-card.primary::before {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            
+            .kpi-card.success::before {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            }
+            
+            .kpi-card.info::before {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+            
+            .kpi-card.warning::before {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+            
+            .kpi-icon {
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2rem;
+            }
+            
+            .kpi-icon.primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .kpi-icon.success {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+            }
+            
+            .kpi-icon.info {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+            }
+            
+            .kpi-icon.warning {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                color: white;
+            }
+            
+            .kpi-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: #2c3e50;
+                margin: 10px 0;
+            }
+            
+            .kpi-label {
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #7f8c8d;
+                font-weight: 600;
+            }
+            
+            .growth-indicator {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+            
+            .growth-positive {
+                background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+                color: #155724;
+            }
+            
+            .growth-negative {
+                background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                color: #721c24;
+            }
+            
+            .content-card {
+                border-radius: 15px;
+                border: none !important;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            }
+            
+            .content-card:hover {
+                box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            }
+            
+            .card-header-gradient {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 15px 15px 0 0 !important;
+                padding: 20px;
+            }
+            
+            .card-header-gradient h6 {
+                margin: 0;
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+            
+            .rating-circle {
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 20px auto;
+                box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+            }
+            
+            .rating-circle .rating-value {
+                font-size: 2.5rem;
+                font-weight: 700;
+            }
+            
+            .rating-circle .rating-stars {
+                font-size: 1rem;
+            }
+            
+            .progress-modern {
+                height: 8px;
+                border-radius: 10px;
+                background: #ecf0f1;
+                overflow: hidden;
+            }
+            
+            .progress-modern .progress-bar {
+                border-radius: 10px;
+                transition: width 0.6s ease;
+            }
+            
+            .activity-item {
+                padding: 15px;
+                border-radius: 10px;
+                background: #f8f9fa;
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+                border-left: 4px solid transparent;
+            }
+            
+            .activity-item:hover {
+                background: #e9ecef;
+                border-left-color: #667eea;
+                transform: translateX(5px);
+            }
+            
+            .activity-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+            }
+            
+            .table-modern {
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            
+            .table-modern thead {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .table-modern thead th {
+                border: none;
+                padding: 15px;
+                font-weight: 600;
+            }
+            
+            .table-modern tbody tr {
+                transition: all 0.3s ease;
+            }
+            
+            .table-modern tbody tr:hover {
+                background: #f8f9fa;
+                transform: scale(1.01);
+            }
+            
+            .table-modern tbody td {
+                padding: 15px;
+                vertical-align: middle;
+            }
+            
+            .badge-modern {
+                padding: 6px 16px;
+                border-radius: 20px;
+                font-weight: 600;
+                font-size: 0.75rem;
+            }
+            
+            .badge-success-modern {
+                background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+                color: #155724;
+            }
+            
+            .badge-warning-modern {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                color: #856404;
+            }
+            
+            .badge-info-modern {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: #004085;
+            }
+            
+            .loading-spinner {
+                width: 60px;
+                height: 60px;
+                border: 6px solid #f3f3f3;
+                border-top: 6px solid #667eea;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 40px auto;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            .btn-refresh {
+                background: white;
+                color: #667eea;
+                border: 2px solid white;
+                padding: 10px 25px;
+                border-radius: 25px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+            
+            .btn-refresh:hover {
+                background: #667eea;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            
+            .stat-label {
+                font-size: 0.875rem;
+                color: #7f8c8d;
+                margin-bottom: 5px;
+            }
+            
+            .stat-value {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+        </style>
+        
         <div class="catering-dashboard">
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 text-gray-800">Catering Dashboard</h1>
-                <button class="btn btn-primary btn-sm" t-on-click="loadDashboardData">
-                    <i class="fa fa-sync-alt fa-sm text-white-50"></i> Refresh
+            <div class="dashboard-header d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>🍽️ Catering Dashboard</h1>
+                    <p class="mb-0 mt-2" style="opacity: 0.9;">Welcome back! Here's what's happening with your catering business today.</p>
+                </div>
+                <button class="btn btn-refresh" t-on-click="loadDashboardData">
+                    <i class="fa fa-sync-alt"></i> Refresh Data
                 </button>
             </div>
 
             <div t-if="state.loading" class="text-center">
-                <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-                <p class="mt-2">Loading dashboard data...</p>
+                <div class="loading-spinner"></div>
+                <p class="mt-3" style="color: #667eea; font-weight: 600;">Loading dashboard data...</p>
             </div>
 
-            <div t-if="state.error" class="alert alert-danger">
+            <div t-if="state.error" class="alert alert-danger" style="border-radius: 15px; border: none; box-shadow: 0 5px 20px rgba(220, 53, 69, 0.2);">
                 <i class="fa fa-exclamation-triangle"></i>
-                <t t-esc="state.error"/>
+                <strong>Error:</strong> <t t-esc="state.error"/>
             </div>
 
             <div t-if="state.data and !state.loading">
                 <!-- KPI Cards -->
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="card border-left-primary shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                            Total Bookings
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        <div class="card kpi-card primary shadow">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="kpi-label">Total Bookings</div>
+                                        <div class="kpi-value">
                                             <t t-esc="state.data.kpis.total_bookings"/>
                                         </div>
-                                        <div class="mt-1">
-                                            <span t-att-class="'text-' + (state.data.kpis.booking_growth >= 0 ? 'success' : 'danger')">
-                                                <t t-esc="formatGrowth(state.data.kpis.booking_growth)"/>
-                                            </span>
-                                        </div>
+                                        <span t-att-class="'growth-indicator ' + (state.data.kpis.booking_growth >= 0 ? 'growth-positive' : 'growth-negative')">
+                                            <i t-att-class="'fa fa-arrow-' + (state.data.kpis.booking_growth >= 0 ? 'up' : 'down')"></i>
+                                            <t t-esc="Math.abs(state.data.kpis.booking_growth)"/>%
+                                        </span>
                                     </div>
-                                    <div class="col-auto">
-                                        <i class="fa fa-calendar-alt fa-2x text-gray-300"></i>
+                                    <div class="kpi-icon primary">
+                                        <i class="fa fa-calendar-alt"></i>
                                     </div>
                                 </div>
                             </div>
@@ -50,49 +358,21 @@
                     </div>
 
                     <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="card border-left-success shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Monthly Revenue
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        <div class="card kpi-card success shadow">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="kpi-label">Monthly Revenue</div>
+                                        <div class="kpi-value">
                                             <t t-esc="formatCurrency(state.data.kpis.total_revenue)"/>
                                         </div>
-                                        <div class="mt-1">
-                                            <span t-att-class="'text-' + (state.data.kpis.revenue_growth >= 0 ? 'success' : 'danger')">
-                                                <t t-esc="formatGrowth(state.data.kpis.revenue_growth)"/>
-                                            </span>
-                                        </div>
+                                        <span t-att-class="'growth-indicator ' + (state.data.kpis.revenue_growth >= 0 ? 'growth-positive' : 'growth-negative')">
+                                            <i t-att-class="'fa fa-arrow-' + (state.data.kpis.revenue_growth >= 0 ? 'up' : 'down')"></i>
+                                            <t t-esc="Math.abs(state.data.kpis.revenue_growth)"/>%
+                                        </span>
                                     </div>
-                                    <div class="col-auto">
-                                        <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="card border-left-info shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                            Avg Satisfaction
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <t t-esc="state.data.kpis.avg_satisfaction"/>/5
-                                        </div>
-                                        <div class="mt-1">
-                                            <span class="text-warning">
-                                                <t t-esc="getStarRating(state.data.kpis.avg_satisfaction)"/>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fa fa-star fa-2x text-gray-300"></i>
+                                    <div class="kpi-icon success">
+                                        <i class="fa fa-dollar-sign"></i>
                                     </div>
                                 </div>
                             </div>
@@ -100,19 +380,41 @@
                     </div>
 
                     <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="card border-left-warning shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                            Active Customers
+                        <div class="card kpi-card info shadow">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="kpi-label">Satisfaction Score</div>
+                                        <div class="kpi-value">
+                                            <t t-esc="state.data.kpis.avg_satisfaction"/><span style="font-size: 1.2rem; color: #7f8c8d;">/5</span>
                                         </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        <div class="text-warning" style="font-size: 1.2rem;">
+                                            <t t-esc="getStarRating(state.data.kpis.avg_satisfaction)"/>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-icon info">
+                                        <i class="fa fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card kpi-card warning shadow">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="kpi-label">Active Customers</div>
+                                        <div class="kpi-value">
                                             <t t-esc="state.data.kpis.active_customers"/>
                                         </div>
+                                        <div class="mt-2" style="font-size: 0.75rem; color: #7f8c8d;">
+                                            This month
+                                        </div>
                                     </div>
-                                    <div class="col-auto">
-                                        <i class="fa fa-users fa-2x text-gray-300"></i>
+                                    <div class="kpi-icon warning">
+                                        <i class="fa fa-users"></i>
                                     </div>
                                 </div>
                             </div>
@@ -121,43 +423,98 @@
                 </div>
 
                 <!-- Feedback Summary -->
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Customer Feedback</h6>
+                <div class="row mb-4">
+                    <div class="col-lg-6 mb-4">
+                        <div class="card content-card shadow">
+                            <div class="card-header-gradient">
+                                <h6><i class="fa fa-comments"></i> Customer Feedback Overview</h6>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <h4 class="text-center">
-                                            <t t-esc="state.data.feedback_summary.avg_rating"/>/5
-                                            <div class="text-warning">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5 text-center">
+                                        <div class="rating-circle">
+                                            <div class="rating-value">
+                                                <t t-esc="state.data.feedback_summary.avg_rating"/>
+                                            </div>
+                                            <div class="rating-stars">
                                                 <t t-esc="getStarRating(state.data.feedback_summary.avg_rating)"/>
                                             </div>
-                                        </h4>
-                                        <p class="text-center text-muted">Average Rating</p>
+                                        </div>
+                                        <p class="text-muted mb-0" style="font-size: 0.875rem;">Average Rating</p>
                                     </div>
-                                    <div class="col-sm-6">
-                                        <p><strong>Total Feedback:</strong> <t t-esc="state.data.feedback_summary.total_feedback"/></p>
-                                        <p><strong>Recommendation Rate:</strong> <t t-esc="state.data.feedback_summary.recommendation_rate"/>%</p>
-                                        <p><strong>Response Rate:</strong> <t t-esc="state.data.feedback_summary.response_rate"/>%</p>
+                                    <div class="col-md-7">
+                                        <div class="mb-3">
+                                            <div class="stat-label">Total Feedback Received</div>
+                                            <div class="stat-value"><t t-esc="state.data.feedback_summary.total_feedback"/></div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="stat-label">Would Recommend</div>
+                                            <div class="stat-value"><t t-esc="state.data.feedback_summary.recommendation_rate"/>%</div>
+                                        </div>
+                                        <div class="mb-0">
+                                            <div class="stat-label">Response Rate</div>
+                                            <div class="stat-value"><t t-esc="state.data.feedback_summary.response_rate"/>%</div>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="mt-3">
-                                    <h6>Detailed Ratings:</h6>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <small>Food Quality: <span class="float-right"><t t-esc="state.data.feedback_summary.detailed_ratings.food_quality"/>/5</span></small>
-                                            <div class="progress mb-2" style="height: 5px;">
-                                                <div class="progress-bar bg-success" t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.food_quality * 20) + '%'"></div>
+                                <div class="mt-4">
+                                    <h6 style="color: #667eea; font-weight: 600; margin-bottom: 15px;">
+                                        <i class="fa fa-chart-bar"></i> Performance Breakdown
+                                    </h6>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small style="font-weight: 600; color: #2c3e50;">Food Quality</small>
+                                            <small style="font-weight: 700; color: #27ae60;">
+                                                <t t-esc="state.data.feedback_summary.detailed_ratings.food_quality"/>/5
+                                            </small>
+                                        </div>
+                                        <div class="progress-modern">
+                                            <div class="progress-bar" 
+                                                 style="background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);"
+                                                 t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.food_quality * 20) + '%'">
                                             </div>
                                         </div>
-                                        <div class="col-6">
-                                            <small>Service: <span class="float-right"><t t-esc="state.data.feedback_summary.detailed_ratings.service_quality"/>/5</span></small>
-                                            <div class="progress mb-2" style="height: 5px;">
-                                                <div class="progress-bar bg-info" t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.service_quality * 20) + '%'"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small style="font-weight: 600; color: #2c3e50;">Service Quality</small>
+                                            <small style="font-weight: 700; color: #3498db;">
+                                                <t t-esc="state.data.feedback_summary.detailed_ratings.service_quality"/>/5
+                                            </small>
+                                        </div>
+                                        <div class="progress-modern">
+                                            <div class="progress-bar" 
+                                                 style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"
+                                                 t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.service_quality * 20) + '%'">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small style="font-weight: 600; color: #2c3e50;">Presentation</small>
+                                            <small style="font-weight: 700; color: #e67e22;">
+                                                <t t-esc="state.data.feedback_summary.detailed_ratings.presentation"/>/5
+                                            </small>
+                                        </div>
+                                        <div class="progress-modern">
+                                            <div class="progress-bar" 
+                                                 style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"
+                                                 t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.presentation * 20) + '%'">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small style="font-weight: 600; color: #2c3e50;">Timeliness</small>
+                                            <small style="font-weight: 700; color: #9b59b6;">
+                                                <t t-esc="state.data.feedback_summary.detailed_ratings.timeliness"/>/5
+                                            </small>
+                                        </div>
+                                        <div class="progress-modern">
+                                            <div class="progress-bar" 
+                                                 style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"
+                                                 t-att-style="'width: ' + (state.data.feedback_summary.detailed_ratings.timeliness * 20) + '%'">
                                             </div>
                                         </div>
                                     </div>
@@ -166,22 +523,34 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-6">
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                    <div class="col-lg-6 mb-4">
+                        <div class="card content-card shadow">
+                            <div class="card-header-gradient">
+                                <h6><i class="fa fa-history"></i> Recent Activity</h6>
                             </div>
-                            <div class="card-body">
-                                <div t-foreach="state.data.recent_activity" t-as="activity" t-key="activity_index" class="d-flex align-items-center mb-3">
-                                    <div class="mr-3">
-                                        <i t-att-class="'fa fa-' + activity.icon + ' text-primary'"></i>
+                            <div class="card-body p-4" style="max-height: 500px; overflow-y: auto;">
+                                <div t-foreach="state.data.recent_activity" t-as="activity" t-key="activity_index" class="activity-item">
+                                    <div class="d-flex align-items-start">
+                                        <div class="activity-icon">
+                                            <i t-att-class="'fa fa-' + activity.icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1" style="font-weight: 600; color: #2c3e50;">
+                                                <t t-esc="activity.title"/>
+                                            </h6>
+                                            <p class="mb-1" style="font-size: 0.875rem; color: #7f8c8d;">
+                                                <t t-esc="activity.description"/>
+                                            </p>
+                                            <small style="color: #95a5a6;">
+                                                <i class="fa fa-clock"></i>
+                                                <t t-esc="formatDate(activity.date)"/>
+                                            </small>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h6 class="mb-0"><t t-esc="activity.title"/></h6>
-                                        <small class="text-muted"><t t-esc="activity.description"/></small>
-                                        <br/>
-                                        <small class="text-muted"><t t-esc="formatDate(activity.date)"/></small>
-                                    </div>
+                                </div>
+                                <div t-if="!state.data.recent_activity || state.data.recent_activity.length === 0" class="text-center py-5">
+                                    <i class="fa fa-inbox fa-3x" style="color: #bdc3c7;"></i>
+                                    <p class="mt-3 text-muted">No recent activity</p>
                                 </div>
                             </div>
                         </div>
@@ -189,39 +558,67 @@
                 </div>
 
                 <!-- Upcoming Events -->
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-12">
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Upcoming Events (Next 7 Days)</h6>
+                        <div class="card content-card shadow">
+                            <div class="card-header-gradient d-flex align-items-center justify-content-between">
+                                <h6><i class="fa fa-calendar-check"></i> Upcoming Events (Next 7 Days)</h6>
+                                <span class="badge badge-light" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.875rem;">
+                                    <t t-esc="state.data.upcoming_events ? state.data.upcoming_events.length : 0"/> Events
+                                </span>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered">
+                                    <table class="table table-modern mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Event</th>
-                                                <th>Customer</th>
-                                                <th>Date</th>
-                                                <th>Venue</th>
-                                                <th>Guests</th>
-                                                <th>Status</th>
-                                                <th>Total</th>
+                                                <th><i class="fa fa-tag"></i> Event</th>
+                                                <th><i class="fa fa-user"></i> Customer</th>
+                                                <th><i class="fa fa-calendar"></i> Date</th>
+                                                <th><i class="fa fa-map-marker-alt"></i> Venue</th>
+                                                <th><i class="fa fa-users"></i> Guests</th>
+                                                <th><i class="fa fa-info-circle"></i> Status</th>
+                                                <th><i class="fa fa-money-bill-wave"></i> Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr t-foreach="state.data.upcoming_events" t-as="event" t-key="event.id">
-                                                <td><t t-esc="event.name"/></td>
-                                                <td><t t-esc="event.customer"/></td>
-                                                <td><t t-esc="formatDate(event.date)"/></td>
-                                                <td><t t-esc="event.venue"/></td>
-                                                <td><t t-esc="event.guests"/></td>
+                                                <td style="font-weight: 600; color: #667eea;">
+                                                    <t t-esc="event.name"/>
+                                                </td>
                                                 <td>
-                                                    <span t-att-class="'badge badge-' + (event.status === 'confirmed' ? 'success' : 'warning')">
+                                                    <i class="fa fa-user-circle" style="color: #95a5a6;"></i>
+                                                    <t t-esc="event.customer"/>
+                                                </td>
+                                                <td>
+                                                    <t t-esc="formatDate(event.date)"/>
+                                                </td>
+                                                <td>
+                                                    <t t-esc="event.venue"/>
+                                                </td>
+                                                <td>
+                                                    <strong><t t-esc="event.guests"/></strong>
+                                                </td>
+                                                <td>
+                                                    <span t-if="event.status === 'confirmed'" class="badge badge-modern badge-success-modern">
+                                                        <i class="fa fa-check-circle"></i> Confirmed
+                                                    </span>
+                                                    <span t-elif="event.status === 'draft'" class="badge badge-modern badge-warning-modern">
+                                                        <i class="fa fa-clock"></i> Draft
+                                                    </span>
+                                                    <span t-else="" class="badge badge-modern badge-info-modern">
                                                         <t t-esc="event.status"/>
                                                     </span>
                                                 </td>
-                                                <td><t t-esc="formatCurrency(event.total)"/></td>
+                                                <td style="font-weight: 700; color: #27ae60;">
+                                                    <t t-esc="formatCurrency(event.total)"/>
+                                                </td>
+                                            </tr>
+                                            <tr t-if="!state.data.upcoming_events || state.data.upcoming_events.length === 0">
+                                                <td colspan="7" class="text-center py-5">
+                                                    <i class="fa fa-calendar-times fa-3x" style="color: #bdc3c7;"></i>
+                                                    <p class="mt-3 text-muted mb-0">No upcoming events scheduled</p>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
