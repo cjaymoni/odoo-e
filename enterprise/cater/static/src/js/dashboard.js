@@ -56,7 +56,9 @@ class CateringDashboard extends Component {
         this.state.data = data;
         this.state.loading = false;
       } else {
-        throw new Error("Unable to load dashboard data. Please check your connection.");
+        throw new Error(
+          "Unable to load dashboard data. Please check your connection."
+        );
       }
     } catch (error) {
       console.error("Dashboard loading error:", error);
@@ -66,35 +68,38 @@ class CateringDashboard extends Component {
   }
 
   formatCurrency(value) {
-    if (typeof value !== 'number') return 'GH₵ 0.00';
-    return `GH₵ ${value.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (typeof value !== "number") return "GH₵ 0.00";
+    return `GH₵ ${value.toLocaleString("en-GH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 
   formatGrowth(value) {
-    if (typeof value !== 'number') return '0%';
-    const sign = value >= 0 ? '+' : '';
+    if (typeof value !== "number") return "0%";
+    const sign = value >= 0 ? "+" : "";
     return `${sign}${value.toFixed(1)}%`;
   }
 
   getStarRating(rating) {
-    if (typeof rating !== 'number') return '☆☆☆☆☆';
+    if (typeof rating !== "number") return "☆☆☆☆☆";
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
-    let stars = '★'.repeat(fullStars);
-    if (hasHalfStar && fullStars < 5) stars += '⯨';
-    stars += '☆'.repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
+    let stars = "★".repeat(fullStars);
+    if (hasHalfStar && fullStars < 5) stars += "⯨";
+    stars += "☆".repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
     return stars;
   }
 
   formatDate(dateStr) {
-    if (!dateStr) return '';
+    if (!dateStr) return "";
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 }
