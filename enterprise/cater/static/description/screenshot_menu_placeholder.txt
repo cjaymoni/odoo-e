@@ -1,0 +1,9 @@
+PLACEHOLDER: Menu catalog screenshot - Capture from running Odoo instance.
+
+Should show:
+- Menu items list/kanban view
+- Categories (Main Dishes, Sides, Beverages, Desserts)
+- Ghanaian dishes (Jollof Rice, Banku, Fufu, etc.)
+- Pricing per person
+- Minimum quantities
+- Professional food imagery (if available)

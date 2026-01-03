@@ -1,0 +1,9 @@
+PLACEHOLDER: Booking form screenshot - Capture from running Odoo instance.
+
+Should show:
+- Booking form with all fields populated
+- Event type, date, guest count, venue
+- Menu items selection with quantities
+- Services selection
+- Automatic calculations (subtotal, VAT, total)
+- Professional form layout

@@ -1,0 +1,7 @@
+PLACEHOLDER: Banner image (560x280px) - Replace with professional banner before App Store submission.
+
+Content should include:
+- Module title: "Catering Management System"
+- Tagline: "Complete Catering & Event Management for Ghana"
+- Key visual: Professional food service imagery
+- Branding: Clean, modern design

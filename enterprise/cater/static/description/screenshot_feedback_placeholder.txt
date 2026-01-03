@@ -1,0 +1,8 @@
+PLACEHOLDER: Feedback system screenshot - Capture from running Odoo instance.
+
+Should show:
+- Customer feedback form with ratings
+- Food quality, service, presentation, timeliness ratings (1-5 stars)
+- Comments and recommendations
+- Linked to completed booking
+- Professional feedback interface

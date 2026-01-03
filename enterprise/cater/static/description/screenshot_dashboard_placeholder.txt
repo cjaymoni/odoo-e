@@ -1,0 +1,8 @@
+PLACEHOLDER: Dashboard screenshot - Capture from running Odoo instance.
+
+Should show:
+- KPI cards (Total Bookings, Total Revenue, Avg Satisfaction, Active Events)
+- Monthly trends chart
+- Upcoming events list
+- Recent activity timeline
+- Clean, professional interface with demo data

@@ -20,24 +20,31 @@
 /* Tablet and Desktop Progressive Enhancement */
 @media (min-width: 768px) {
 
-    .o_form_view .o_form_sheet_bg,
-    .o_form_view .oe_chatter {
-        width: 48% !important;
+    .o_form_view .o_form_sheet_bg {
+        /* width: 100% !important; */
         min-width: 400px !important;
         padding: 20px !important;
     }
 
     .o_form_view .oe_chatter {
-        margin-top: 0 !important;
+        /* width: 100% !important; */
+        min-width: 400px !important;
+        padding: 20px !important;
+        margin-top: 20px !important;
     }
 }
 
 @media (min-width: 1200px) {
 
-    .o_form_view .o_form_sheet_bg,
-    .o_form_view .oe_chatter {
-        width: 50vw !important;
+    .o_form_view .o_form_sheet_bg {
+        /* width: 100% !important; */
         min-width: 600px !important;
+    }
+
+    .o_form_view .oe_chatter {
+        /* width: 100% !important; */
+        min-width: 600px !important;
+        margin-top: 20px !important;
     }
 }
 

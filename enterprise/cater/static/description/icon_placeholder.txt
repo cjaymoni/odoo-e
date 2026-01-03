@@ -1,0 +1,14 @@
+PLACEHOLDER: Module icon (256x256px) - Replace with professional catering-themed icon before App Store submission.
+
+Design requirements:
+- Size: 256x256 pixels
+- Format: PNG with transparency
+- Theme: Catering/food service (chef hat, plate, utensils, etc.)
+- Colors: Professional, matching Ghanaian cultural colors
+- Style: Modern flat design
+
+Tools to create:
+- Canva (canva.com)
+- Flaticon (flaticon.com)
+- Icons8 (icons8.com)
+- GIMP or Photoshop

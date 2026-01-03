@@ -8,10 +8,15 @@ services:
       - POSTGRES_USER=odoo
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ./volumes/odoo-db-data:/var/lib/postgresql/data/pgdata
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - odoo-network
 
@@ -19,24 +24,47 @@ services:
     build: .
     container_name: odoo-enterprise
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DB_HOST=db
       - DB_USER=odoo
       - DB_PASSWORD=odoo_password
       - DB_PORT=5432
+      # Production settings
+      - ODOO_RC=/opt/odoo/odoo.conf
+      - LOG_LEVEL=info
+      - WORKERS=4
+      - MAX_CRON_THREADS=2
+      - LIMIT_MEMORY_HARD=2684354560
+      - LIMIT_MEMORY_SOFT=2147483648
+      - LIMIT_TIME_CPU=600
+      - LIMIT_TIME_REAL=1200
     volumes:
       - ./odoo:/opt/odoo/odoo:ro
-      - ./enterprise:/mnt/extra-addons
-      - ./odoo.conf:/opt/odoo/odoo.conf
-      - ./entrypoint.sh:/opt/odoo/entrypoint.sh
-      - ./wait-for-psql.py:/opt/odoo/wait-for-psql.py
-      - ./volumes/odoo-web-data:/var/lib/odoo
+      - ./enterprise:/mnt/extra-addons:ro
+      - ./odoo.conf:/opt/odoo/odoo.conf:ro
+      - ./entrypoint.sh:/opt/odoo/entrypoint.sh:ro
+      - ./wait-for-psql.py:/opt/odoo/wait-for-psql.py:ro
+      - odoo-web-data:/var/lib/odoo
+      - odoo-filestore:/opt/odoo/data/filestore
     ports:
       - "8069:8069"
+      - "8072:8072" # Longpolling port
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
       - odoo-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   nginx:
     image: nginx:latest
     container_name: odoo-enterprise-nginx
@@ -44,14 +72,25 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
     depends_on:
-      - odoo
+      odoo:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - odoo-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   certbot:
     image: certbot/certbot
@@ -65,6 +104,14 @@ services:
       - nginx
     networks:
       - odoo-network
+
+volumes:
+  odoo-db-data:
+    driver: local
+  odoo-web-data:
+    driver: local
+  odoo-filestore:
+    driver: local
 
 networks:
   odoo-network:
