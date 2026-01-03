@@ -7,28 +7,35 @@ This document describes the integration of package and menu item selection throu
 ## Features Added
 
 ### 1. Customer Request Form
+
 The customer request form now includes:
+
 - **Interested Package**: A dropdown to select a package the customer is interested in
 - **Interested Menu Items**: A multi-select field (tags widget) to select specific menu items
 
 These selections help capture customer preferences during the initial inquiry stage.
 
 ### 2. CRM Lead Form
+
 When a customer request is converted to a lead, the package and menu selections are transferred to the lead:
+
 - **Interested Package**: Available in the lead form
 - **Interested Menu Items**: Displayed as tags in the lead form
 
 This allows sales reps to see customer preferences while working the lead through the pipeline.
 
 ### 3. Automatic Booking Population
+
 When converting a lead to a booking, the system automatically:
 
 #### If Package Selected:
+
 - Sets the `package_id` on the booking
 - The booking's onchange handler automatically populates menu items and services from the package
 - This provides a complete starting point for the booking
 
 #### If Menu Items Selected (No Package):
+
 - Creates menu line items for each selected menu item
 - Sets quantity based on guest count from the lead
 - Adds a note "From customer interest" to track origin
@@ -38,6 +45,7 @@ When converting a lead to a booking, the system automatically:
 ### For Sales Staff
 
 1. **Customer Request Stage**
+
    - Customer inquires about an event
    - Sales rep creates customer request
    - Select event details (date, guest count, venue)
@@ -46,6 +54,7 @@ When converting a lead to a booking, the system automatically:
    - Convert request to lead
 
 2. **CRM Lead Stage**
+
    - Work the lead through pipeline stages
    - Package and menu preferences are visible on the lead form
    - Use this information during customer consultations
@@ -60,6 +69,7 @@ When converting a lead to a booking, the system automatically:
    - Finalize pricing and confirm with customer
 
 ### For Customers (Portal)
+
 - Customers can see their package/menu preferences in the portal
 - When booking is created, they can review the selected items
 - Transparent view of what they initially requested vs. final booking
@@ -69,12 +79,14 @@ When converting a lead to a booking, the system automatically:
 ### Models Extended
 
 #### cater.customer.request
+
 ```python
 package_id = fields.Many2one('cater.package', string='Interested Package')
 menu_item_ids = fields.Many2many('cater.menu.item', string='Interested Menu Items')
 ```
 
 #### crm.lead
+
 ```python
 interested_package_id = fields.Many2one('cater.package', string='Interested Package')
 interested_menu_item_ids = fields.Many2many('cater.menu.item', string='Interested Menu Items')
@@ -83,7 +95,9 @@ interested_menu_item_ids = fields.Many2many('cater.menu.item', string='Intereste
 ### Conversion Logic
 
 #### Request → Lead
+
 In `customer_request.py`:
+
 ```python
 lead_vals = {
     # ... other fields ...
@@ -95,7 +109,9 @@ lead_vals = {
 Also adds package and menu information to lead description for easy reference.
 
 #### Lead → Booking
+
 In `crm_lead_extend.py`:
+
 ```python
 # Add package if selected
 if self.interested_package_id:
@@ -153,6 +169,7 @@ Customer Request
 No additional configuration required. The fields are available immediately after module upgrade.
 
 ### Security
+
 - Same security rules apply as parent models
 - Sales staff can view and edit package/menu selections
 - Portal users can view their selections in request/booking portals
@@ -160,16 +177,19 @@ No additional configuration required. The fields are available immediately after
 ## Troubleshooting
 
 ### Package not transferring to booking
+
 - Check that `interested_package_id` is set on the lead
 - Verify package record still exists and is active
 - Check booking's package onchange is triggering
 
 ### Menu items not appearing on booking
+
 - Ensure no package is selected (package takes precedence)
 - Verify `interested_menu_item_ids` has values on lead
 - Check menu items are active and not archived
 
 ### Duplicate menu items on booking
+
 - If package is selected, don't manually add menu items
 - Package onchange will automatically populate items
 - Remove duplicates manually if they occur
@@ -177,6 +197,7 @@ No additional configuration required. The fields are available immediately after
 ## Future Enhancements
 
 Potential improvements for future versions:
+
 - Smart suggestions based on event type and guest count
 - Popular package recommendations
 - Menu item compatibility checking
@@ -184,6 +205,7 @@ Potential improvements for future versions:
 - Package customization (add/remove items from standard package)
 
 ## Related Documentation
+
 - [CRM_CLIENT_LIFECYCLE.md](./CRM_CLIENT_LIFECYCLE.md) - Complete CRM integration guide
 - [PACKAGES.md](./PACKAGES.md) - Package management documentation
 - Main booking documentation for menu and service line management
