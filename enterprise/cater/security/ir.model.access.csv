@@ -8,6 +8,7 @@ access_package_service_line_manager,cater.package.service.line.manager,model_cat
 access_event_booking_manager,cater.event.booking.manager,model_cater_event_booking,catering_manager_group,1,1,1,1
 access_booking_menu_line_manager,cater.booking.menu.line.manager,model_cater_booking_menu_line,catering_manager_group,1,1,1,1
 access_booking_service_line_manager,cater.booking.service.line.manager,model_cater_booking_service_line,catering_manager_group,1,1,1,1
+access_booking_currency_conversion_manager,cater.booking.currency.conversion.manager,model_cater_booking_currency_conversion,catering_manager_group,1,1,1,1
 access_catering_feedback_manager,cater.feedback.manager,model_cater_feedback,catering_manager_group,1,1,1,1
 access_whatsapp_service_manager,cater.whatsapp.service.manager,model_cater_whatsapp_service,catering_manager_group,1,1,1,1
 access_whatsapp_log_manager,cater.whatsapp.log.manager,model_cater_whatsapp_log,catering_manager_group,1,1,1,1
@@ -20,6 +21,7 @@ access_package_service_line_staff,cater.package.service.line.staff,model_cater_p
 access_event_booking_staff,cater.event.booking.staff,model_cater_event_booking,catering_staff_group,1,1,1,0
 access_booking_menu_line_staff,cater.booking.menu.line.staff,model_cater_booking_menu_line,catering_staff_group,1,1,1,1
 access_booking_service_line_staff,cater.booking.service.line.staff,model_cater_booking_service_line,catering_staff_group,1,1,1,1
+access_booking_currency_conversion_staff,cater.booking.currency.conversion.staff,model_cater_booking_currency_conversion,catering_staff_group,1,0,0,0
 access_catering_feedback_staff,cater.feedback.staff,model_cater_feedback,catering_staff_group,1,1,0,0
 access_whatsapp_service_staff,cater.whatsapp.service.staff,model_cater_whatsapp_service,catering_staff_group,0,0,0,0
 access_whatsapp_log_staff,cater.whatsapp.log.staff,model_cater_whatsapp_log,catering_staff_group,1,1,1,0
@@ -29,6 +31,7 @@ access_catering_package_client,cater.package.client,model_cater_package,catering
 access_event_booking_client,cater.event.booking.client,model_cater_event_booking,catering_client_group,1,1,1,0
 access_booking_menu_line_client,cater.booking.menu.line.client,model_cater_booking_menu_line,catering_client_group,1,1,1,0
 access_booking_service_line_client,cater.booking.service.line.client,model_cater_booking_service_line,catering_client_group,1,1,1,0
+access_booking_currency_conversion_client,cater.booking.currency.conversion.client,model_cater_booking_currency_conversion,catering_client_group,1,0,0,0
 access_catering_service_client,cater.service.client,model_cater_service,catering_client_group,1,0,0,0
 access_catering_feedback_client,cater.feedback.client,model_cater_feedback,catering_client_group,1,1,1,0
 access_product_product_staff,product.product.staff,product.model_product_product,catering_staff_group,1,1,1,0
@@ -50,6 +53,7 @@ access_customer_request_staff,cater.customer.request.staff,model_cater_customer_
 access_event_booking_accountant,cater.event.booking.accountant,model_cater_event_booking,catering_accountant_group,1,0,0,0
 access_booking_menu_line_accountant,cater.booking.menu.line.accountant,model_cater_booking_menu_line,catering_accountant_group,1,0,0,0
 access_booking_service_line_accountant,cater.booking.service.line.accountant,model_cater_booking_service_line,catering_accountant_group,1,0,0,0
+access_booking_currency_conversion_accountant,cater.booking.currency.conversion.accountant,model_cater_booking_currency_conversion,catering_accountant_group,1,0,0,0
 access_sale_order_accountant,sale.order.accountant,sale.model_sale_order,catering_accountant_group,1,1,1,0
 access_sale_order_line_accountant,sale.order.line.accountant,sale.model_sale_order_line,catering_accountant_group,1,1,1,0
 access_account_move_accountant,account.move.accountant,account.model_account_move,catering_accountant_group,1,1,1,0

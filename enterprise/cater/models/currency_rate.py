@@ -34,6 +34,7 @@ class CaterCurrencyRate(models.Model):
          'Only one rate per currency per date per company is allowed!')
     ]
     
+    
     @api.depends('currency_id', 'rate', 'date', 'company_currency_id')
     def _compute_display_name(self):
         """Compute display name for better readability"""
@@ -88,10 +89,10 @@ class CaterCurrencyRate(models.Model):
             ], order='date desc', limit=1)
             
             if rate_record:
-                _logger.info(f"Found rate record: {rate_record.display_name}, rate={rate_record.rate}")
+                _logger.info(f"Using user-defined rate: {rate_record.display_name}, rate={rate_record.rate}")
                 return rate_record.rate
             else:
-                _logger.warning(f"No exchange rate found for {to_currency.name} on {date}")
+                _logger.warning(f"No user-defined exchange rate found in cater.currency.rate for {to_currency.name} on {date}. Please create a rate record.")
                 return 0.0
         
         # Case 2: From another currency to company currency
@@ -104,21 +105,26 @@ class CaterCurrencyRate(models.Model):
             ], order='date desc', limit=1)
             
             if rate_record:
+                _logger.info(f"Using user-defined rate: {rate_record.display_name}, inverse_rate={rate_record.inverse_rate}")
                 return rate_record.inverse_rate
             else:
-                _logger.warning(f"No exchange rate found for {from_currency.name} on {date}")
+                _logger.warning(f"No user-defined exchange rate found in cater.currency.rate for {from_currency.name} on {date}. Please create a rate record.")
                 return 0.0
         
-        # Case 3: Between two foreign currencies (convert through company currency)
+        # Case 3: Between two foreign currencies (convert through company currency using defined rates)
         else:
-            # From -> Company Currency
+            _logger.info(f"Converting between foreign currencies {from_currency.name} → {company_currency.name} → {to_currency.name}")
+            # From -> Company Currency (using user-defined rate)
             from_to_company = self.get_conversion_rate(from_currency, company_currency, date)
-            # Company Currency -> To
+            # Company Currency -> To (using user-defined rate)
             company_to_to = self.get_conversion_rate(company_currency, to_currency, date)
             
             if from_to_company and company_to_to:
-                return from_to_company * company_to_to
+                final_rate = from_to_company * company_to_to
+                _logger.info(f"Calculated cross-currency rate: {from_to_company} × {company_to_to} = {final_rate}")
+                return final_rate
             else:
+                _logger.warning(f"Cannot convert {from_currency.name} → {to_currency.name}: missing required rates")
                 return 0.0
     
     @api.model

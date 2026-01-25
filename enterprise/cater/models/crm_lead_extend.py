@@ -111,12 +111,14 @@ class CrmLeadExtend(models.Model):
         _logger.info(f"Converting lead {self.id} to booking - guest_count: {self.guest_count}, venue_location: {self.venue_location}")
         _logger.info(f"Booking values - guest_count: {guest_count}, venue: {venue}")
         
-        # Determine event type from lead tags or default to 'other'
+        # Determine event type - prioritize package type, then tags, then default
         event_type = 'other'
         wedding_tag = self.env.ref('cater.tag_wedding', raise_if_not_found=False)
         corporate_tag = self.env.ref('cater.tag_corporate_event', raise_if_not_found=False)
         
-        if wedding_tag and wedding_tag in self.tag_ids:
+        if self.interested_package_id and self.interested_package_id.package_type and self.interested_package_id.package_type != 'general':
+            event_type = self.interested_package_id.package_type
+        elif wedding_tag and wedding_tag in self.tag_ids:
             event_type = 'wedding'
         elif corporate_tag and corporate_tag in self.tag_ids:
             event_type = 'corporate'
@@ -143,18 +145,44 @@ class CrmLeadExtend(models.Model):
             'company_id': self.company_id.id,
         }
         
-        # Add package if customer selected one
+        # Add package if selected and populate its contents
         if self.interested_package_id:
             booking_vals['package_id'] = self.interested_package_id.id
-        
+            _logger.info(f"Package selected for conversion: {self.interested_package_id.name}")
+            
+            # Explicitly populate menu lines from package
+            menu_lines = []
+            for line in self.interested_package_id.package_menu_line_ids:
+                _logger.info(f"Adding menu item from package: {line.menu_item_id.name}, quantity: {line.quantity}")
+                menu_lines.append((0, 0, {
+                    'menu_item_id': line.menu_item_id.id,
+                    'quantity': int(line.quantity),
+                    'notes': line.notes or '',
+                }))
+            if menu_lines:
+                booking_vals['menu_line_ids'] = menu_lines
+                _logger.info(f"Added {len(menu_lines)} menu lines from package")
+            else:
+                _logger.warning(f"Package {self.interested_package_id.name} has no menu items")
+            
+            # Explicitly populate service lines from package
+            service_lines = []
+            for line in self.interested_package_id.package_service_line_ids:
+                _logger.info(f"Adding service from package: {line.service_id.name}, quantity: {line.quantity}")
+                service_lines.append((0, 0, {
+                    'service_id': line.service_id.id,
+                    'quantity': int(line.quantity),
+                    'notes': line.notes or '',
+                }))
+            if service_lines:
+                booking_vals['service_line_ids'] = service_lines
+                _logger.info(f"Added {len(service_lines)} service lines from package")
+            
         # Set deposit if we have expected revenue
         if deposit_amount > 0:
             booking_vals['deposit_amount'] = deposit_amount
         
-        booking = self.env['cater.event.booking'].create(booking_vals)
-        
-        # Add menu items if customer selected any (and no package selected)
-        # If package is selected, the onchange will handle menu items
+        # Add individual menu items if selected (and no package)
         if self.interested_menu_item_ids and not self.interested_package_id:
             menu_line_vals = []
             for menu_item in self.interested_menu_item_ids:
@@ -163,7 +191,14 @@ class CrmLeadExtend(models.Model):
                     'quantity': self.guest_count if self.guest_count else 1,
                     'notes': 'From customer interest'
                 }))
-            booking.write({'menu_line_ids': menu_line_vals})
+            booking_vals['menu_line_ids'] = menu_line_vals
+            
+        booking = self.env['cater.event.booking'].create(booking_vals)
+        
+        # Ensure package contents are applied (fallback in case create method didn't populate)
+        if booking.package_id and not booking.menu_line_ids and not booking.service_line_ids:
+            _logger.info(f"Fallback: Applying package contents after creation for {booking.name}")
+            booking.action_populate_from_package()
         
         # Update lead
         self.write({

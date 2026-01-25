@@ -164,22 +164,16 @@
                         </group>
                         <group string="Currency Conversions">
                             <field name="show_currency_conversions" widget="boolean_toggle"/>
-                            <field name="total_amount_usd" widget="monetary" 
+                            <field name="currency_conversion_ids" 
                                    invisible="not show_currency_conversions"
-                                   readonly="1"/>
-                            <label for="usd_rate_used" string="USD Rate" invisible="not show_currency_conversions"/>
-                            <div invisible="not show_currency_conversions">
-                                <field name="usd_rate_used" readonly="1" class="oe_inline"/>
-                            </div>
-                            <field name="total_amount_gbp" widget="monetary"
-                                   invisible="not show_currency_conversions"
-                                   readonly="1"/>
-                            <label for="gbp_rate_used" string="GBP Rate" invisible="not show_currency_conversions"/>
-                            <div invisible="not show_currency_conversions">
-                                <field name="gbp_rate_used" readonly="1" class="oe_inline"/>
-                            </div>
-                            <field name="usd_currency_id" invisible="1"/>
-                            <field name="gbp_currency_id" invisible="1"/>
+                                   readonly="1"
+                                   context="{'default_booking_id': id}">
+                                <list decoration-muted="converted_amount == 0">
+                                    <field name="currency_id" readonly="1"/>
+                                    <field name="converted_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                    <field name="rate_used" readonly="1" digits="[12, 6]"/>
+                                </list>
+                            </field>
                         </group>
                     </group>
                     

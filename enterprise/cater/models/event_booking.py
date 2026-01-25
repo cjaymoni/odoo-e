@@ -60,6 +60,17 @@ class EventBooking(models.Model):
     venue_address = fields.Text('Venue Address')
     guest_count = fields.Integer('Expected Guests', required=True, tracking=True)
     
+    # Range Calculation for Overlap Detection
+    event_end_date = fields.Datetime('Event End Date', compute='_compute_event_end_date', store=True, index=True)
+
+    @api.depends('event_date', 'event_duration')
+    def _compute_event_end_date(self):
+        for booking in self:
+            if booking.event_date and booking.event_duration:
+                booking.event_end_date = booking.event_date + timedelta(hours=booking.event_duration)
+            else:
+                booking.event_end_date = False
+    
     # Package
     package_id = fields.Many2one('cater.package', 'Package', tracking=True, 
                                   help="Select a pre-configured package for this booking")
@@ -90,25 +101,14 @@ class EventBooking(models.Model):
                                            help="Enable to lock the total amount to a manually provided value.")
     manual_total_amount = fields.Monetary('Manual Total Amount', currency_field='currency_id')
     
-    # Multi-Currency Display (GHS base with USD/GBP conversion)
-    total_amount_usd = fields.Monetary('Total (USD)', compute='_compute_currency_conversions', 
-                                       currency_field='usd_currency_id', store=True,
-                                       help="Total amount converted to USD")
-    total_amount_gbp = fields.Monetary('Total (GBP)', compute='_compute_currency_conversions',
-                                       currency_field='gbp_currency_id', store=True,
-                                       help="Total amount converted to GBP")
-    usd_rate_used = fields.Float('USD Rate Used', compute='_compute_currency_conversions', 
-                                  store=True, digits=(12, 6),
-                                  help="Exchange rate used for USD conversion")
-    gbp_rate_used = fields.Float('GBP Rate Used', compute='_compute_currency_conversions',
-                                  store=True, digits=(12, 6),
-                                  help="Exchange rate used for GBP conversion")
-    usd_currency_id = fields.Many2one('res.currency', 'USD Currency', 
-                                      compute='_compute_currency_ids', store=False)
-    gbp_currency_id = fields.Many2one('res.currency', 'GBP Currency',
-                                      compute='_compute_currency_ids', store=False)
+    # Multi-Currency Display (dynamically shows all user-defined currency rates)
+    currency_conversion_ids = fields.One2many('cater.booking.currency.conversion', 'booking_id',
+                                             string='Currency Conversions',
+                                             compute='_compute_currency_conversions',
+                                             store=True,
+                                             help="Dynamic currency conversions based on user-defined rates")
     show_currency_conversions = fields.Boolean('Show Currency Conversions', default=True,
-                                               help="Display USD and GBP conversions on the form")
+                                               help="Display currency conversions for all defined rates")
     
     # Payment
     deposit_amount = fields.Monetary('Deposit Required (50%)', compute='_compute_deposit', store=True)
@@ -236,33 +236,46 @@ class EventBooking(models.Model):
     def _onchange_package_id(self):
         """Populate menu and service lines from selected package"""
         if self.package_id:
-            # Clear existing lines
-            self.menu_line_ids = [(5, 0, 0)]
-            self.service_line_ids = [(5, 0, 0)]
+            self._apply_package_contents()
+
+    def action_populate_from_package(self):
+        """Public method to populate from package, can be called on existing records"""
+        self._apply_package_contents()
+
+    def _apply_package_contents(self):
+        """Internal helper to apply package items to booking"""
+        for booking in self:
+            if not booking.package_id:
+                continue
             
-            # Add menu items from package
-            menu_lines = []
-            for package_line in self.package_id.package_menu_line_ids:
+            # Prepare menu lines
+            menu_lines = [(5, 0, 0)]
+            for package_line in booking.package_id.package_menu_line_ids:
                 menu_lines.append((0, 0, {
                     'menu_item_id': package_line.menu_item_id.id,
-                    'quantity': package_line.quantity,
+                    'quantity': int(package_line.quantity),
                     'notes': package_line.notes or '',
                 }))
-            self.menu_line_ids = menu_lines
             
-            # Add services from package
-            service_lines = []
-            for package_line in self.package_id.package_service_line_ids:
+            # Prepare service lines
+            service_lines = [(5, 0, 0)]
+            for package_line in booking.package_id.package_service_line_ids:
                 service_lines.append((0, 0, {
                     'service_id': package_line.service_id.id,
-                    'quantity': package_line.quantity,
+                    'quantity': int(package_line.quantity),
                     'notes': package_line.notes or '',
                 }))
-            self.service_line_ids = service_lines
+            
+            vals = {
+                'menu_line_ids': menu_lines,
+                'service_line_ids': service_lines,
+            }
             
             # Set event type if package has specific type
-            if self.package_id.package_type and self.package_id.package_type != 'general':
-                self.event_type = self.package_id.package_type
+            if booking.package_id.package_type and booking.package_id.package_type != 'general':
+                vals['event_type'] = booking.package_id.package_type
+                
+            booking.write(vals)
     
     @api.depends('menu_line_ids.subtotal', 'service_line_ids.subtotal',
                  'manual_total_override', 'manual_total_amount')
@@ -289,75 +302,65 @@ class EventBooking(models.Model):
                 unique_types = set(filter(None, service_types))
                 booking.service_type_group = unique_types.pop() if len(unique_types) == 1 else 'mixed'
     
-    def _compute_currency_ids(self):
-        """Get USD and GBP currency records"""
-        usd = self.env['res.currency'].search([('name', '=', 'USD')], limit=1)
-        gbp = self.env['res.currency'].search([('name', '=', 'GBP')], limit=1)
-        for booking in self:
-            booking.usd_currency_id = usd
-            booking.gbp_currency_id = gbp
-    
     @api.depends('total_amount', 'currency_id', 'event_date')
     def _compute_currency_conversions(self):
-        """Convert total amount to USD and GBP using manual exchange rates"""
+        """Dynamically convert total amount to all currencies with user-defined rates"""
         for booking in self:
             _logger.info(f"Computing currency conversions for {booking.name}: total={booking.total_amount}, currency={booking.currency_id.name}")
             
             if not booking.total_amount or not booking.currency_id:
-                booking.total_amount_usd = 0.0
-                booking.total_amount_gbp = 0.0
-                booking.usd_rate_used = 0.0
-                booking.gbp_rate_used = 0.0
+                booking.currency_conversion_ids = [(5, 0, 0)]  # Clear all
                 _logger.warning(f"Skipping {booking.name}: no total_amount or currency_id")
                 continue
             
-            # Get currency records
-            usd = self.env['res.currency'].search([('name', '=', 'USD')], limit=1)
-            gbp = self.env['res.currency'].search([('name', '=', 'GBP')], limit=1)
-            
-            _logger.info(f"Found currencies - USD: {usd.name if usd else 'None'}, GBP: {gbp.name if gbp else 'None'}")
-            
-            # Use event date for conversion, fallback to today
+            booking_currency = booking.currency_id
             conversion_date = booking.event_date.date() if booking.event_date else fields.Date.today()
-            _logger.info(f"Using conversion date: {conversion_date}")
             
-            # Convert to USD
-            if usd:
-                usd_rate = self.env['cater.currency.rate'].get_conversion_rate(
-                    booking.currency_id,
-                    usd,
+            # Find all currencies that have rates defined for this company
+            # Get the most recent rate for each currency
+            rate_records = self.env['cater.currency.rate'].search([
+                ('company_id', '=', booking.company_id.id),
+                ('active', '=', True),
+                ('date', '<=', conversion_date)
+            ], order='currency_id, date desc')
+            
+            # Get unique currencies from rate records (most recent rate per currency)
+            currencies_with_rates = {}
+            seen_currencies = set()
+            for rate_record in rate_records:
+                currency = rate_record.currency_id
+                if currency.id not in seen_currencies:
+                    currencies_with_rates[currency.id] = currency
+                    seen_currencies.add(currency.id)
+            
+            # Build conversion lines
+            conversion_lines = []
+            for currency_id, target_currency in currencies_with_rates.items():
+                # Skip if it's the same as booking currency
+                if target_currency == booking_currency:
+                    continue
+                
+                # Get conversion rate
+                conversion_rate = self.env['cater.currency.rate'].get_conversion_rate(
+                    booking_currency,
+                    target_currency,
                     conversion_date
                 )
-                usd_amount = booking.total_amount * usd_rate
-                booking.total_amount_usd = usd_amount
-                booking.usd_rate_used = usd_rate
-                _logger.info(f"Converted {booking.total_amount} GHS to {usd_amount} USD (rate: {usd_rate})")
-            else:
-                booking.total_amount_usd = 0.0
-                booking.usd_rate_used = 0.0
+                
+                if conversion_rate > 0:
+                    converted_amount = booking.total_amount * conversion_rate
+                    conversion_lines.append((0, 0, {
+                        'currency_id': target_currency.id,
+                        'converted_amount': converted_amount,
+                        'rate_used': conversion_rate,
+                    }))
+                    _logger.info(f"Added conversion: {booking.total_amount} {booking_currency.name} → {converted_amount} {target_currency.name} (rate: {conversion_rate})")
+                else:
+                    _logger.warning(f"No rate found for {booking_currency.name} → {target_currency.name} on {conversion_date}")
             
-            # Convert to GBP
-            if gbp:
-                gbp_rate = self.env['cater.currency.rate'].get_conversion_rate(
-                    booking.currency_id,
-                    gbp,
-                    conversion_date
-                )
-                gbp_amount = booking.total_amount * gbp_rate
-                booking.total_amount_gbp = gbp_amount
-                booking.gbp_rate_used = gbp_rate
-                _logger.info(f"Converted {booking.total_amount} GHS to {gbp_amount} GBP (rate: {gbp_rate})")
-            else:
-                booking.total_amount_gbp = 0.0
-                booking.gbp_rate_used = 0.0
+            # Update the One2many field (this will automatically clear old and create new)
+            booking.currency_conversion_ids = [(5, 0, 0)] + conversion_lines
     
-    def write(self, vals):
-        # Disable tracking for computed fields to reduce chatter noise
-        computed_fields = ['menu_total', 'service_total', 'subtotal', 'tax_amount', 'total_amount', 'deposit_amount', 'balance_due']
-        if any(field in vals for field in computed_fields) and len(vals) == len([f for f in vals if f in computed_fields]):
-            # If only computed fields are being updated, disable tracking
-            return super(EventBooking, self.with_context(mail_notrack=True)).write(vals)
-        return super().write(vals)
     
     @api.depends('total_amount')
     def _compute_deposit(self):
@@ -398,20 +401,35 @@ class EventBooking(models.Model):
             if booking.event_date <= fields.Datetime.now():
                 raise ValidationError("Event date must be in the future.")
 
-    @api.constrains('event_date', 'venue')
-    def _check_venue_conflict(self):
-        for booking in self:
-            if not booking.event_date or not booking.venue:
-                continue
-            # Find overlapping bookings at the same venue (excluding self)
-            overlap = self.search([
-                ('id', '!=', booking.id),
-                ('venue', '=', booking.venue),
-                ('event_date', '=', booking.event_date),
-                ('state', 'in', ['confirmed', 'in_progress'])
-            ])
+
+    @api.onchange('event_date', 'event_duration')
+    def _onchange_event_timing_conflict(self):
+        """Provide immediate warning if a timing conflict is detected across any venue"""
+        if self.event_date and self.event_duration:
+            start_a = self.event_date
+            end_a = start_a + timedelta(hours=self.event_duration)
+            
+            domain = [
+                ('state', 'not in', ['cancelled']),
+                ('event_date', '<', end_a),
+                ('event_end_date', '>', start_a)
+            ]
+            if self._origin:
+                domain.append(('id', '!=', self._origin.id))
+                
+            overlap = self.search(domain, limit=1)
             if overlap:
-                raise ValidationError(f"Venue '{booking.venue}' is already booked for {booking.event_date}.")
+                return {
+                    'warning': {
+                        'title': _("Event Timing Conflict"),
+                        'message': _("There is already another event ('%s' at '%s') scheduled for an overlapping period (%s to %s).") % (
+                            overlap.event_name or overlap.name,
+                            overlap.venue or _("TBD"),
+                            overlap.event_date.strftime('%Y-%m-%d %H:%M'),
+                            overlap.event_end_date.strftime('%Y-%m-%d %H:%M')
+                        )
+                    }
+                }
     
     @api.constrains('guest_count')
     def _check_guest_count(self):
@@ -439,7 +457,7 @@ class EventBooking(models.Model):
     
     @api.model_create_multi
     def create(self, vals_list):
-        """Override create to handle batch creation properly"""
+        """Override create to handle batch creation and package population"""
         for vals in vals_list:
             # Auto-generate sequence if not provided
             if vals.get('name', 'New') == 'New':
@@ -450,6 +468,59 @@ class EventBooking(models.Model):
                 partner = self.env['res.partner'].browse(vals['partner_id'])
                 if not partner.is_catering_customer:
                     partner.is_catering_customer = True
+
+            # Systematic Package Population
+            # If a package is selected and no lines are explicitly provided, populate them from the package
+            package_id = vals.get('package_id')
+            has_menu_lines = bool(vals.get('menu_line_ids'))
+            has_service_lines = bool(vals.get('service_line_ids'))
+            
+            _logger.info(f"Creating booking - package_id: {package_id}, has_menu_lines: {has_menu_lines}, has_service_lines: {has_service_lines}")
+            
+            if package_id:
+                package = self.env['cater.package'].browse(package_id)
+                if not package.exists():
+                    _logger.warning(f"Package {package_id} does not exist")
+                else:
+                    _logger.info(f"Package found: {package.name}, menu_lines: {len(package.package_menu_line_ids)}, service_lines: {len(package.package_service_line_ids)}")
+                    
+                    # Always populate from package if no lines are explicitly provided
+                    if not has_menu_lines and not has_service_lines:
+                        _logger.info(f"Systematically populating from package {package.name} during creation")
+                        
+                        # Populate menu lines
+                        menu_lines = []
+                        for line in package.package_menu_line_ids:
+                            _logger.info(f"Adding menu item: {line.menu_item_id.name}, quantity: {line.quantity}")
+                            menu_lines.append((0, 0, {
+                                'menu_item_id': line.menu_item_id.id,
+                                'quantity': int(line.quantity),
+                                'notes': line.notes or '',
+                            }))
+                        if menu_lines:
+                            vals['menu_line_ids'] = menu_lines
+                            _logger.info(f"Added {len(menu_lines)} menu lines to booking")
+                        else:
+                            _logger.warning(f"Package {package.name} has no menu items")
+                        
+                        # Populate service lines
+                        service_lines = []
+                        for line in package.package_service_line_ids:
+                            _logger.info(f"Adding service: {line.service_id.name}, quantity: {line.quantity}")
+                            service_lines.append((0, 0, {
+                                'service_id': line.service_id.id,
+                                'quantity': int(line.quantity),
+                                'notes': line.notes or '',
+                            }))
+                        if service_lines:
+                            vals['service_line_ids'] = service_lines
+                            _logger.info(f"Added {len(service_lines)} service lines to booking")
+                        
+                        # Set event type if package has specific type and not already set
+                        if package.package_type and package.package_type != 'general' and not vals.get('event_type'):
+                            vals['event_type'] = package.package_type
+                    else:
+                        _logger.info(f"Skipping package population - lines already provided")
         
         return super().create(vals_list)
     
@@ -489,7 +560,6 @@ class EventBooking(models.Model):
             body=f"Booking confirmed for {self.event_name} on {self.event_date.strftime('%Y-%m-%d %H:%M')}",
             message_type='notification'
         )
-        self._send_whatsapp_confirmation()
         self.message_post(body="Booking confirmed", message_type='notification')
     
     def action_start_event(self):
@@ -624,14 +694,27 @@ class EventBooking(models.Model):
     def action_view_invoices(self):
         """View invoices related to this booking"""
         self.ensure_one()
-        return {
+        tree_view = self.env.ref('account.view_move_tree', False)
+        form_view = self.env.ref('account.view_move_form', False)
+        views = []
+        if tree_view:
+            views.append((tree_view.id, 'list'))
+        if form_view:
+            views.append((form_view.id, 'form'))
+        # Fallback: if no views found, use view_mode only (Odoo will use default views)
+        action = {
             'type': 'ir.actions.act_window',
             'name': _('Invoices'),
             'res_model': 'account.move',
-            'view_mode': 'tree,form',
             'domain': [('catering_booking_id', '=', self.id)],
             'context': {'default_catering_booking_id': self.id},
         }
+        if views:
+            action['view_mode'] = 'list,form'
+            action['views'] = views
+        else:
+            action['view_mode'] = 'list,form'
+        return action
     
     def action_view_lead(self):
         """View related CRM lead"""
@@ -693,11 +776,11 @@ _Thank you for choosing our catering services._
                 return
             
             # Create more engaging and comprehensive feedback request
-            message = f"""🎉 *Booking Confirmed!*
-
+            message = f"""🎉 *Event Completed!*
+            
 Hello {self.partner_id.name},
 
-Your booking for *{self.event_name}* has been confirmed! 
+Your event *{self.event_name}* has been successfully completed! 
 
 📅 *Event Details:*
 • Date: {self.event_date.strftime('%A, %B %d, %Y at %I:%M %p') if self.event_date else 'TBD'}
@@ -974,74 +1057,26 @@ Your feedback helps us serve you better! 💬
         return rating, comments
     
     def _send_feedback_confirmation(self, mobile_number, rating, feedback):
-        """Send immediate confirmation that feedback was received"""
+        """Send a polite sign-off note after feedback receipt"""
         try:
             whatsapp_service = self.env['cater.whatsapp.service'].search([('active', '=', True)], limit=1)
             if not whatsapp_service:
                 return
             
-            # Create personalized confirmation based on rating
-            confirmation_message = f"""✅ *Feedback Received - Thank You!*
+            message = f"""✅ *Feedback Recorded*
 
-🙏 Thank you for your {rating}-star rating for *{self.event_name}*!
+Thank you for sharing your experience with us! Your {rating}-star rating has been received.
 
-*Your feedback:*
-{"⭐" * rating} ({rating}/5 stars)
-💬 "{feedback.comments}"
+We appreciate your business and look forward to serving you again soon. Have a wonderful day! 🙏
 
-"""
+---
+_Internal Ref: #FB{feedback.id:04d}_"""
             
-            if rating >= 4:
-                confirmation_message += f"""🌟 *We're delighted you loved our service!*
-
-Your positive feedback makes our team's day! Here's how you can help us grow:
-
-🔗 *Leave a Google Review:* 
-   Help others discover our catering services
-   
-� *Refer Friends & Family:* 
-   Share our contact: +233-XXX-XXXX
-   
-🎉 *Special Thank You Offer:*
-   Get 10% OFF your next booking!
-   Code: HAPPY{rating}STAR
-   Valid until: {(fields.Date.today() + timedelta(days=30)).strftime('%B %d, %Y')}
-
-📱 *Follow us on social media:*
-   📘 Facebook: [Your Facebook Page]
-   📸 Instagram: @yourcatering
-
-We can't wait to cater your next celebration! 💚"""
-            else:
-                confirmation_message += f"""📞 *We want to make this right.*
-
-Your feedback is incredibly valuable to us. We take every comment seriously.
-
-*Immediate Action:*
-✅ Your concerns have been escalated to our management team
-✅ A senior manager will contact you within 4 hours
-✅ We're committed to resolving any issues
-
-*How we'll follow up:*
-• Personal call to understand your experience
-• Review what went wrong and how to improve  
-• Offer appropriate compensation for any inconvenience
-• Ensure your next experience exceeds expectations
-
-*Contact us directly if urgent:*
-📞 Manager Hotline: +233-XXX-XXXX
-📧 Email: manager@yourcatering.com
-💬 WhatsApp: This number
-
-Your trust means everything to us. Thank you for giving us the opportunity to improve. 🙏
-
-*Ref #FB{feedback.id:04d}*"""
-            
-            whatsapp_service.send_message(mobile_number, confirmation_message)
-            _logger.info(f"Enhanced feedback confirmation sent for booking {self.name} with {rating} stars")
+            whatsapp_service.send_message(mobile_number, message.strip())
+            _logger.info(f"Simplified feedback sign-off sent for booking {self.name}")
             
         except Exception as e:
-            _logger.error(f"Failed to send feedback confirmation: {str(e)}")
+            _logger.error(f"Failed to send feedback sign-off: {str(e)}")
 
     def _create_followup_activity(self, feedback):
         """Create follow-up activity for negative feedback"""
@@ -1267,3 +1302,27 @@ class BookingServiceLine(models.Model):
     def _compute_subtotal(self):
         for line in self:
             line.subtotal = line.quantity * line.price_unit
+
+
+class BookingCurrencyConversion(models.Model):
+    _name = 'cater.booking.currency.conversion'
+    _description = 'Booking Currency Conversion'
+    _order = 'currency_id'
+    _check_company_auto = True
+
+    booking_id = fields.Many2one('cater.event.booking', 'Booking', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', 'Company', related='booking_id.company_id', store=True, index=True)
+    currency_id = fields.Many2one('res.currency', 'Currency', required=True)
+    converted_amount = fields.Monetary('Converted Amount', required=True, currency_field='currency_id')
+    rate_used = fields.Float('Rate Used', digits=(12, 6), required=True,
+                             help="Exchange rate used for this conversion")
+    
+    @api.depends('currency_id')
+    def _compute_display_name(self):
+        for record in self:
+            if record.currency_id:
+                record.display_name = f"{record.currency_id.name} Conversion"
+            else:
+                record.display_name = 'Currency Conversion'
+    
+    display_name = fields.Char('Display Name', compute='_compute_display_name', store=True)

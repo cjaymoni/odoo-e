@@ -16,7 +16,7 @@ echo ""
 
 # Configuration
 DB_NAME="${1:-test_catering_db}"
-ODOO_BIN="${2:-./odoo-bin}"
+ODOO_BIN="${2:-python3 -m odoo}"
 ODOO_CONF="${3:-odoo.conf}"
 MODULE_NAME="cater"
 
@@ -49,6 +49,7 @@ echo -e "${YELLOW}1. Running basic model tests...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -i $MODULE_NAME \
     --test-enable \
     --test-tags=cater,catering_models \
@@ -61,6 +62,7 @@ echo -e "${YELLOW}2. Running security tests...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -u $MODULE_NAME \
     --test-enable \
     --test-tags=cater,catering_security \
@@ -73,6 +75,7 @@ echo -e "${YELLOW}3. Running workflow tests...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -u $MODULE_NAME \
     --test-enable \
     --test-tags=cater,workflow \
@@ -85,6 +88,7 @@ echo -e "${YELLOW}4. Running view and UI tests...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -u $MODULE_NAME \
     --test-enable \
     --test-tags=cater,views,ui \
@@ -97,6 +101,7 @@ echo -e "${YELLOW}5. Running integration tests...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -u $MODULE_NAME \
     --test-enable \
     --test-tags=cater,integration \
@@ -109,6 +114,7 @@ echo -e "${YELLOW}6. Running complete test suite for coverage...${NC}"
 docker-compose exec -T odoo $ODOO_BIN \
     -c $ODOO_CONF \
     -d $DB_NAME \
+    --xmlrpc-port=8070 \
     -u $MODULE_NAME \
     --test-enable \
     --test-tags=cater \

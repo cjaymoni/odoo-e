@@ -104,8 +104,9 @@ class CateringFeedback(models.Model):
     def _check_feedback_timing(self):
         """Ensure feedback is provided after the event"""
         for record in self:
-            if record.feedback_date < record.booking_id.event_date:
-                raise ValidationError(_("Feedback cannot be provided before the event date."))
+            # Allow feedback before event date if booking is completed
+            if record.feedback_date < record.booking_id.event_date and record.booking_id.state != 'completed':
+                raise ValidationError(_("Feedback cannot be provided before the event date unless the booking is completed."))
     
     @api.model
     def create_from_whatsapp(self, booking_id, rating, comments):

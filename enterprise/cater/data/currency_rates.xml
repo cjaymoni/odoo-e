@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Initial Exchange Rates for Ghana Cedis (GHS) -->
+        <!-- Initial Exchange Rates - These are created based on company's base currency -->
+        <!-- If company base currency is GHS, these rates apply: -->
         
-        <!-- USD Exchange Rate -->
+        <!-- GHS → USD Exchange Rate (when base is GHS) -->
         <record id="currency_rate_ghs_usd" model="cater.currency.rate">
             <field name="date" eval="(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')"/>
             <field name="currency_id" ref="base.USD"/>
@@ -11,7 +12,7 @@
             <field name="active">True</field>
         </record>
         
-        <!-- GBP Exchange Rate -->
+        <!-- GHS → GBP Exchange Rate (when base is GHS) -->
         <record id="currency_rate_ghs_gbp" model="cater.currency.rate">
             <field name="date" eval="(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')"/>
             <field name="currency_id" ref="base.GBP"/>
@@ -19,7 +20,7 @@
             <field name="active">True</field>
         </record>
         
-        <!-- EUR Exchange Rate (optional) -->
+        <!-- GHS → EUR Exchange Rate (when base is GHS) -->
         <record id="currency_rate_ghs_eur" model="cater.currency.rate">
             <field name="date" eval="(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')"/>
             <field name="currency_id" ref="base.EUR"/>
@@ -27,4 +28,5 @@
             <field name="active">True</field>
         </record>
     </data>
+    
 </odoo>

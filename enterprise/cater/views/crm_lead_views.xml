@@ -28,17 +28,24 @@
             <xpath expr="//header" position="inside">
                 <button name="action_convert_to_booking" string="Convert to Booking" type="object" 
                         class="oe_highlight" 
-                        invisible="booking_id or not partner_id"
+                        invisible="booking_id or not partner_id or probability != 100"
+                        help="Convert this lead to an event booking (lead must be won - probability must be 100%)"
                         groups="sales_team.group_sale_salesman"/>
             </xpath>
             
-            <!-- Add catering-specific fields in opportunity section -->
-            <xpath expr="//field[@name='expected_revenue']" position="after">
-                <field name="event_date"/>
-                <field name="guest_count"/>
-                <field name="venue_location"/>
-                <field name="interested_package_id"/>
-                <field name="interested_menu_item_ids" widget="many2many_tags"/>
+            <!-- Add catering-specific fields in a dedicated group -->
+            <xpath expr="//notebook" position="before">
+                <group string="Catering Information" name="catering_info">
+                    <group>
+                        <field name="event_date"/>
+                        <field name="guest_count"/>
+                        <field name="venue_location"/>
+                    </group>
+                    <group>
+                        <field name="interested_package_id"/>
+                        <field name="interested_menu_item_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
             </xpath>
             
             <!-- Add hidden fields for tracking -->

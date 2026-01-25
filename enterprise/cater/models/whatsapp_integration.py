@@ -21,6 +21,12 @@ class WhatsAppService(models.Model):
     from_number = fields.Char('From Number', required=True, help='Your WhatsApp Business number')
     messaging_service_sid = fields.Char('Messaging Service SID', help='Optional. Use a Twilio Messaging Service (recommended). If set, "From" is ignored.')
     active = fields.Boolean('Active', default=True)
+    webhook_url = fields.Char('Webhook URL', compute='_compute_webhook_url', help='Configure this URL in your Twilio/WhatsApp sandbox settings')
+
+    def _compute_webhook_url(self):
+        base_url = (self.env['ir.config_parameter'].sudo().get_param('web.base.url') or '').strip()
+        for service in self:
+            service.webhook_url = f"{base_url.rstrip('/')}/whatsapp/webhook" if base_url else False
 
     def _twilio_messages_url(self):
         self.ensure_one()

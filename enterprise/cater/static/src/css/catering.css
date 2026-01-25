@@ -22,13 +22,13 @@
 
     .o_form_view .o_form_sheet_bg {
         /* width: 100% !important; */
-        min-width: 400px !important;
+        min-width: 600px !important;
         padding: 20px !important;
     }
 
     .o_form_view .oe_chatter {
         /* width: 100% !important; */
-        min-width: 400px !important;
+        min-width: 600px !important;
         padding: 20px !important;
         margin-top: 20px !important;
     }
@@ -38,12 +38,12 @@
 
     .o_form_view .o_form_sheet_bg {
         /* width: 100% !important; */
-        min-width: 600px !important;
+        min-width: 990px !important;
     }
 
     .o_form_view .oe_chatter {
         /* width: 100% !important; */
-        min-width: 600px !important;
+        min-width: 780px !important;
         margin-top: 20px !important;
     }
 }

@@ -18,9 +18,10 @@
                             <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                             <field name="api_url"/>
                             <field name="account_sid"/>
-                            <field name="auth_token" password="True"/>
+                             <field name="auth_token" password="True"/>
                             <field name="from_number"/>
                             <field name="messaging_service_sid"/>
+                            <field name="webhook_url" widget="CopyClipboardChar" readonly="1"/>
                         </group>
                         <group name="status">
                             <field name="active"/>
@@ -35,6 +36,12 @@
                             <li>Get your Account SID and Auth Token from the dashboard</li>
                             <li>Set up WhatsApp sandbox or get approved WhatsApp Business number</li>
                             <li>Enter your WhatsApp-enabled phone number in 'From Number'</li>
+                            <li>
+                                <strong>IMPORTANT:</strong> In your Twilio WhatsApp Sandbox settings (or Business number settings), 
+                                update the <strong>"When a message comes in"</strong> URL to:
+                                <br/>
+                                <code><field name="webhook_url"/></code>
+                            </li>
                         </ol>
                     </div>
                 </sheet>
