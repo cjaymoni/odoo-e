@@ -1,4 +1,5 @@
-from odoo.tests.common import SavepointCase, tagged
+from odoo.addons.base.tests.common import SavepointCaseWithUserDemo as SavepointCase
+from odoo.tests.common import tagged
 from odoo.exceptions import ValidationError, UserError
 from datetime import datetime, timedelta
 
@@ -75,7 +76,7 @@ class TestBookingWorkflow(SavepointCase):
         booking.write({'state': 'confirmed'})
         
         # Start event
-        booking.action_start()
+        booking.action_start_event()
         self.assertEqual(booking.state, 'in_progress')
         
     def test_booking_in_progress_to_completed(self):
@@ -84,7 +85,7 @@ class TestBookingWorkflow(SavepointCase):
             'partner_id': self.partner.id,
             'event_name': 'Birthday Party',
             'event_type': 'birthday',
-            'event_date': datetime.now() - timedelta(days=1),
+            'event_date': datetime.now() + timedelta(days=10),
             'venue': 'Private Residence',
             'guest_count': 30,
         })
@@ -122,7 +123,7 @@ class TestBookingWorkflow(SavepointCase):
         })
         
         # Attempt to confirm without menu items should fail
-        with self.assertRaises((ValidationError, UserError)):
+        with self.assertRaises(ValidationError):
             booking.action_confirm()
 
 
@@ -320,7 +321,7 @@ class TestIntegration(SavepointCase):
         self.assertEqual(booking.state, 'confirmed')
         
         # Start event
-        booking.action_start()
+        booking.action_start_event()
         self.assertEqual(booking.state, 'in_progress')
         
         # Complete event

@@ -5,6 +5,14 @@ from odoo import models, fields, api, _
 class ResPartnerExtend(models.Model):
     _inherit = 'res.partner'
 
+    # For backward compatibility with tests
+    catering_booking_count = fields.Integer('Catering Booking Count', compute='_compute_catering_booking_count')
+
+    @api.depends('booking_ids')
+    def _compute_catering_booking_count(self):
+        for partner in self:
+            partner.catering_booking_count = len(partner.booking_ids)
+
     # Additional fields for catering customers
     is_catering_customer = fields.Boolean('Is Catering Customer', default=False)
     preferred_cuisine = fields.Selection([

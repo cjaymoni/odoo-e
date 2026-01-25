@@ -18,13 +18,14 @@ def post_init_hook(env):
     ghs_currency = env['res.currency'].search([('name', '=', 'GHS')], limit=1)
     if not ghs_currency:
         _logger.info("GHS currency not found, skipping GHS rate creation")
-    else:
-        # Ensure GHS and other standard currencies are active
-        common_currencies = env['res.currency'].search([
-            ('name', 'in', ['GHS', 'USD', 'GBP', 'EUR'])
-        ])
-        common_currencies.write({'active': True})
-        _logger.info("Activated common currencies (GHS, USD, GBP, EUR)")
+        return  # Do not attempt any rate creation if GHS is missing
+
+    # Ensure GHS and other standard currencies are active
+    common_currencies = env['res.currency'].search([
+        ('name', 'in', ['GHS', 'USD', 'GBP', 'EUR'])
+    ])
+    common_currencies.write({'active': True})
+    _logger.info("Activated common currencies (GHS, USD, GBP, EUR)")
     
     # Define rates based on common base currencies
     rates_map = {

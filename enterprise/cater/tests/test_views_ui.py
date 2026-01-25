@@ -1,4 +1,5 @@
-from odoo.tests.common import SavepointCase, tagged
+from odoo.addons.base.tests.common import SavepointCaseWithUserDemo as SavepointCase
+from odoo.tests.common import tagged
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta
 
@@ -19,43 +20,43 @@ class TestViews(SavepointCase):
 
     def test_booking_form_view_exists(self):
         """Test that booking form view is defined"""
-        view = self.env.ref('cater.view_event_booking_form', raise_if_not_found=False)
+        view = self.env.ref('catering_event_booking_form_view', raise_if_not_found=False)
         self.assertIsNotNone(view, "Booking form view should exist")
-        
+
     def test_booking_tree_view_exists(self):
         """Test that booking tree view is defined"""
-        view = self.env.ref('cater.view_event_booking_tree', raise_if_not_found=False)
+        view = self.env.ref('catering_event_booking_list_view', raise_if_not_found=False)
         self.assertIsNotNone(view, "Booking tree view should exist")
-        
+
     def test_booking_kanban_view_exists(self):
         """Test that booking kanban view is defined"""
-        view = self.env.ref('cater.view_event_booking_kanban', raise_if_not_found=False)
+        view = self.env.ref('catering_event_booking_kanban_view', raise_if_not_found=False)
         self.assertIsNotNone(view, "Booking kanban view should exist")
-        
+
     def test_booking_search_view_exists(self):
         """Test that booking search view is defined"""
-        view = self.env.ref('cater.view_event_booking_search', raise_if_not_found=False)
+        view = self.env.ref('catering_event_booking_search_view', raise_if_not_found=False)
         self.assertIsNotNone(view, "Booking search view should exist")
-        
+
     def test_menu_item_views_exist(self):
         """Test that menu item views are defined"""
-        form_view = self.env.ref('cater.view_menu_item_form', raise_if_not_found=False)
-        tree_view = self.env.ref('cater.view_menu_item_tree', raise_if_not_found=False)
-        
+        form_view = self.env.ref('catering_menu_item_form_view', raise_if_not_found=False)
+        tree_view = self.env.ref('catering_menu_item_list_view', raise_if_not_found=False)
+
         self.assertIsNotNone(form_view, "Menu item form view should exist")
         self.assertIsNotNone(tree_view, "Menu item tree view should exist")
-        
+
     def test_feedback_views_exist(self):
         """Test that feedback views are defined"""
-        form_view = self.env.ref('cater.view_feedback_form', raise_if_not_found=False)
-        tree_view = self.env.ref('cater.view_feedback_tree', raise_if_not_found=False)
-        
+        form_view = self.env.ref('catering_feedback_form_view', raise_if_not_found=False)
+        tree_view = self.env.ref('catering_feedback_list_view', raise_if_not_found=False)
+
         self.assertIsNotNone(form_view, "Feedback form view should exist")
         self.assertIsNotNone(tree_view, "Feedback tree view should exist")
-        
+
     def test_dashboard_action_exists(self):
         """Test that dashboard action is defined"""
-        action = self.env.ref('cater.action_catering_dashboard', raise_if_not_found=False)
+        action = self.env.ref('catering_dashboard_action', raise_if_not_found=False)
         self.assertIsNotNone(action, "Dashboard action should exist")
         
     def test_form_view_fields(self):
