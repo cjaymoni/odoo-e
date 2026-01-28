@@ -219,7 +219,7 @@
 }
 
 .catering-dashboard .dashboard-header {
-    background: #ff9a76;
+    background: #aaa7a5;
     color: #fff;
     padding: 30px;
     border-radius: 15px;
@@ -368,7 +368,7 @@
 }
 
 .catering-dashboard .card-header-gradient {
-    background: #ffb88c;
+    background: #aaa7a5;
     color: #fff;
     border-radius: 15px 15px 0 0;
     padding: 20px;
@@ -433,12 +433,11 @@
 }
 
 .catering-dashboard .table-modern {
-    border-radius: 10px;
     overflow: hidden;
 }
 
 .catering-dashboard .table-modern thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0f0f11 0%, #373434 100%);
     color: #fff;
 }
 

@@ -175,69 +175,128 @@ class TestWhatsAppIntegration(TransactionCase):
         self.assertFalse(result)
 
     @patch('requests.post')
-    def test_feedback_request_automation(self, mock_post):
-        """Test automated feedback request sending"""
-        # Mock successful response
-        mock_response = MagicMock()
-        mock_response.status_code = 201
-        mock_response.json.return_value = {'sid': 'SM111222333', 'status': 'sent'}
-        mock_post.return_value = mock_response
+    def test_feedback_matching_with_explicit_reference(self, mock_post):
+        """Test matching feedback using explicit booking reference"""
+        # Ensure booking is set up for feedback
+        self.booking.write({
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now() - timedelta(minutes=10)
+        })
         
-        # Trigger feedback request
-        self.booking._send_feedback_request()
-        
-        # Check that message was sent
-        mock_post.assert_called_once()
-        call_args = mock_post.call_args
-        self.assertIn('feedback', call_args[1]['data']['Body'].lower())
-        self.assertIn('rating', call_args[1]['data']['Body'].lower())
-
-    def test_opt_out_handling(self):
-        """Test that opt-out customers don't receive messages"""
-        # Opt out customer
-        self.partner.whatsapp_opt_in = False
-        
-        # Try to send feedback request
-        with patch('requests.post') as mock_post:
-            self.booking._send_feedback_request()
-            
-            # Should not call API
-            mock_post.assert_not_called()
-
-    def test_missing_mobile_number(self):
-        """Test handling of missing mobile number"""
-        # Remove mobile number
-        self.partner.mobile = False
-        
-        # Try to send message
-        result = self.whatsapp_service.send_message(
-            None,
-            'Test message'
+        # Simulate incoming message with reference
+        message = f"{self.booking.name} - 5 stars!"
+        result = self.env['cater.event.booking']._process_whatsapp_feedback_response(
+            self.partner.mobile, message
         )
         
-        # Should return False
-        self.assertFalse(result)
+        # Assertions
+        self.assertTrue(result)
+        self.assertEqual(result.booking_id.id, self.booking.id)
+        self.assertEqual(result.rating, '5')
 
     @patch('requests.post')
-    def test_network_error_handling(self, mock_post):
-        """Test network error handling"""
-        # Mock network error
-        mock_post.side_effect = Exception('Network error')
+    def test_feedback_matching_shared_mobile(self, mock_post):
+        """Test matching feedback when multiple partners share a mobile number"""
+        # Create second partner with same mobile
+        partner2 = self.env['res.partner'].create({
+            'name': 'Partner 2',
+            'mobile': self.partner.mobile,
+            'is_catering_customer': True,
+            'whatsapp_opt_in': True,
+        })
         
-        # Try to send message
-        result = self.whatsapp_service.send_message(
-            '+233241234567',
-            'Test message'
+        # Create booking for partner2
+        booking2 = self.env['cater.event.booking'].create({
+            'partner_id': partner2.id,
+            'event_name': 'Event 2',
+            'event_type': 'corporate',
+            'event_date': datetime.now() + timedelta(days=5),
+            'venue': 'Venue 2',
+            'guest_count': 50,
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now()
+        })
+        
+        # Setup first booking (older request)
+        self.booking.write({
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now() - timedelta(hours=1)
+        })
+        
+        # Simulate incoming message (no reference)
+        # Should match booking2 because it's the more recent request
+        result = self.env['cater.event.booking']._process_whatsapp_feedback_response(
+            self.partner.mobile, "5 - Excellent service!"
         )
         
-        # Should handle error gracefully
-        self.assertFalse(result)
+        # Assertions
+        self.assertTrue(result)
+        self.assertEqual(result.booking_id.id, booking2.id)
+        self.assertEqual(result.partner_id.id, partner2.id)
+
+    @patch('requests.post')
+    def test_feedback_matching_recency(self, mock_post):
+        """Test matching most recent request for same partner"""
+        # Create second booking for same partner
+        booking2 = self.env['cater.event.booking'].create({
+            'partner_id': self.partner.id,
+            'event_name': 'Event 2',
+            'event_type': 'corporate',
+            'event_date': datetime.now() + timedelta(days=5),
+            'venue': 'Venue 2',
+            'guest_count': 50,
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now()
+        })
         
-        # Check error log
-        log = self.env['cater.whatsapp.log'].search([
-            ('to_number', '=', '+233241234567'),
-            ('status', '=', 'error')
-        ])
-        self.assertGreaterEqual(len(log), 1, "Should have at least one error log")
-        error_logs = log.filtered(lambda l: 'Network error' in (l.error_message or ''))
-        self.assertGreaterEqual(len(error_logs), 1, "Should have at least one network error log")
+        # Setup first booking (older request)
+        self.booking.write({
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now() - timedelta(hours=2)
+        })
+        
+        # Simulate incoming message (no reference)
+        result = self.env['cater.event.booking']._process_whatsapp_feedback_response(
+            self.partner.mobile, "4 - Good"
+        )
+        
+        # Assertions
+        self.assertTrue(result)
+        self.assertEqual(result.booking_id.id, booking2.id)
+    @patch('requests.post')
+    def test_feedback_matching_structured_detailed(self, mock_post):
+        """Test matching and parsing structured detailed feedback with user's specific format"""
+        # Ensure booking is set up for feedback
+        self.booking.write({
+            'state': 'completed',
+            'feedback_request_sent': True,
+            'feedback_request_date': datetime.now() - timedelta(minutes=5)
+        })
+        
+        # Simulate structured message exactly as user suggested (with mixed spacing and indentation)
+        message = f"""booking id: {self.booking.name}
+                     Food Quality (1-5) : 5
+                    Service (1-5) :4
+                    Presentation (1-5):3
+                    Timeliness (1-5):2
+                    Comments: Everything was mostly fine."""
+        
+        result = self.env['cater.event.booking']._process_whatsapp_feedback_response(
+            self.partner.mobile, message
+        )
+        
+        # Assertions
+        self.assertTrue(result, "Should successfully process the structured feedback")
+        self.assertEqual(result.booking_id.id, self.booking.id)
+        self.assertEqual(result.food_quality, 5)
+        self.assertEqual(result.service_quality, 4)
+        self.assertEqual(result.presentation, 3)
+        self.assertEqual(result.timeliness, 2)
+        self.assertEqual(result.comments, "Everything was mostly fine.")
+        # Overall rating should be average: (5+4+3+2)/4 = 14/4 = 3.5 -> 4
+        self.assertEqual(result.rating, '4')

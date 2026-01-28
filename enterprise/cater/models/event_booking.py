@@ -775,48 +775,26 @@ _Thank you for choosing our catering services._
                 _logger.warning("No active WhatsApp service configured; skipping feedback send.")
                 return
             
-            # Create more engaging and comprehensive feedback request
-            message = f"""🎉 *Event Completed!*
-            
-Hello {self.partner_id.name},
+            # Simplified, user-friendly template with structured example
+            message = f"""✨ *We value your feedback!*
 
-Your event *{self.event_name}* has been successfully completed! 
+Hello {self.partner_id.name}, 
 
-📅 *Event Details:*
-• Date: {self.event_date.strftime('%A, %B %d, %Y at %I:%M %p') if self.event_date else 'TBD'}
-• Venue: {self.venue or 'To be confirmed'}
-• Guests: {self.guest_count}
-• Total: {self.currency_id.symbol if self.currency_id else ''}{'%.2f' % self.total_amount}
+Thank you for choosing us for your event: *{self.event_name}* (Ref: {self.name}).
 
-We're excited to cater your special event! 🍽️
+We hope you enjoyed our service! Could you please take a moment to rate your experience?
 
-_Thank you for choosing our catering services._
+⭐ *Quick Rating:* Reply with a number from 1 to 5.
 
-----
+📊 *Detailed Feedback:* 
+booking id: {self.name}
+Food Quality (1-5) : 5
+Service (1-5) : 5
+Presentation (1-5) : 5
+Timeliness (1-5) : 5
+Comments: Your comments here
 
-How was your experience with *{self.event_name}*?
-
-🌟 *Please rate our service:*
-
-*Quick Rating:* Reply with just a number (1-5)
-⭐ 1 = Poor
-⭐⭐ 2 = Fair  
-⭐⭐⭐ 3 = Good
-⭐⭐⭐⭐ 4 = Very Good
-⭐⭐⭐⭐⭐ 5 = Excellent
-
-*Or detailed feedback:*
-Rate our:
-• Food Quality (1-5)
-• Service (1-5) 
-• Presentation (1-5)
-• Timeliness (1-5)
-• Comments
-
-*Example:* "5 - Food was amazing, service excellent, very happy!"
-
-Your feedback helps us serve you better! 💬
-            """
+Your feedback helps us serve you better! 🙏"""
             
             # Send feedback request and log it
             success = whatsapp_service.send_message(self.partner_id.mobile, message.strip())
@@ -908,72 +886,73 @@ Your feedback helps us serve you better! 💬
     
     @api.model
     def _process_whatsapp_feedback_response(self, from_number, message_body):
-        """Process WhatsApp feedback response and create feedback record"""
+        """Process WhatsApp feedback response and create feedback record.
+        Uses a hybrid matching strategy:
+        1. Explicit Booking Reference in message
+        2. Direct Mobile Lookup + Recency Ranking
+        """
         try:
             _logger.info(f"Processing feedback from {from_number}: '{message_body}'")
             
-            # Find customer by mobile number
-            partner = self.env['res.partner'].search([
-                ('mobile', '=', from_number),
-                ('is_catering_customer', '=', True)
-            ], limit=1)
+            # Parse feedback from message first to see if it contains a booking reference
+            details = self._parse_feedback_message(message_body)
+            rating = details.get('rating')
+            comments = details.get('comments')
+            booking_ref = details.get('booking_id')
             
-            if not partner:
-                _logger.info(f"No customer found for mobile number: {from_number}")
-                # Try without is_catering_customer filter
-                partner = self.env['res.partner'].search([
-                    ('mobile', '=', from_number)
+            _logger.info(f"Parsed details: {details}")
+            
+            target_booking = None
+            if booking_ref:
+                # Search for booking with this name and sender's phone number
+                target_booking = self.search([
+                    ('name', '=', booking_ref),
+                    ('partner_id.mobile', '=', from_number)
                 ], limit=1)
-                if partner:
-                    _logger.info(f"Found partner {partner.name} but not marked as catering customer")
+                if target_booking:
+                    _logger.info(f"Matched booking {target_booking.name} via explicit reference")
+            
+            # 2. Fallback to Direct Mobile Lookup + Recency Ranking
+            if not target_booking:
+                _logger.info(f"No booking found by reference, falling back to recency matching for {from_number}")
+                target_booking = self.search([
+                    ('partner_id.mobile', '=', from_number),
+                    ('state', '=', 'completed'),
+                    ('feedback_request_sent', '=', True),
+                    ('feedback_received', '=', False)
+                ], order='feedback_request_date desc', limit=1)
+
+            if not target_booking:
+                _logger.info(f"No pending feedback booking found for mobile: {from_number}")
                 return False
             
-            _logger.info(f"Found customer: {partner.name} (ID: {partner.id})")
-            
-            # Find recent completed booking without feedback
-            recent_booking = self.search([
-                ('partner_id', '=', partner.id),
-                ('state', '=', 'completed'),
-                ('feedback_ids', '=', False),
-                ('event_date', '>=', fields.Datetime.now() - timedelta(days=7))
-            ], order='event_date desc', limit=1)
-            
-            if not recent_booking:
-                _logger.info(f"No recent completed booking found for customer: {partner.name}")
-                # Check if there are any completed bookings at all
-                all_completed = self.search([
-                    ('partner_id', '=', partner.id),
-                    ('state', '=', 'completed')
-                ], order='event_date desc', limit=5)
-                _logger.info(f"Customer has {len(all_completed)} completed bookings total")
-                return False
-            
-            _logger.info(f"Found recent booking: {recent_booking.name} - {recent_booking.event_name}")
-            
-            # Parse feedback from message
-            rating, comments = self._parse_feedback_message(message_body)
-            _logger.info(f"Parsed rating: {rating}, comments: '{comments}'")
+            partner = target_booking.partner_id
+            _logger.info(f"Matched booking: {target_booking.name} for partner: {partner.name}")
             
             if rating:
                 # Create feedback record
-                feedback = self.env['cater.feedback'].create({
-                    'booking_id': recent_booking.id,
+                feedback_vals = {
+                    'booking_id': target_booking.id,
+                    'partner_id': partner.id,
                     'rating': str(rating),
                     'comments': comments,
                     'source': 'whatsapp',
-                    'food_quality': rating,
-                    'service_quality': rating,
-                    'presentation': rating,
-                    'timeliness': rating,
-                })
+                    # Use specific ratings if available, otherwise fall back to overall rating
+                    'food_quality': details.get('food_quality') or rating,
+                    'service_quality': details.get('service_quality') or rating,
+                    'presentation': details.get('presentation') or rating,
+                    'timeliness': details.get('timeliness') or rating,
+                }
+                
+                feedback = self.env['cater.feedback'].create(feedback_vals)
                 
                 _logger.info(f"Created feedback {feedback.id} from WhatsApp response")
                 
                 # Send immediate confirmation
-                self._send_feedback_confirmation(partner.mobile, rating, feedback)
+                self._send_feedback_confirmation(from_number, rating, feedback)
                 
                 # Mark that feedback was received and confirmed
-                recent_booking.write({
+                target_booking.write({
                     'feedback_received': True,
                     'feedback_confirmed': True
                 })
@@ -995,66 +974,109 @@ Your feedback helps us serve you better! 💬
     
     @api.model
     def _parse_feedback_message(self, message_body):
-        """Parse rating and comments from WhatsApp message"""
+        """Parse rating and comments from WhatsApp message, supporting structured detailed format"""
         import re
         
-        message = message_body.lower().strip()
-        rating = None
-        comments = message_body.strip()
+        details = {
+            'rating': None,
+            'comments': message_body.strip(),
+            'booking_id': None,
+            'food_quality': None,
+            'service_quality': None,
+            'presentation': None,
+            'timeliness': None,
+        }
         
-        # Enhanced rating patterns to match real customer responses
+        message = message_body.lower().strip()
+        
+        # 1. Check for structured detailed feedback format
+        # booking id: BKxxxxx
+        # Food Quality (1-5): 5
+        # Service (1-5): 5
+        # ...
+        
+        patterns = {
+            'booking_id': r'booking\s*id\s*:\s*(BK\d{5})',
+            'food_quality': r'food\s*quality\s*\(1-5\)\s*:\s*(\d)',
+            'service_quality': r'service\s*\(1-5\)\s*:\s*(\d)',
+            'presentation': r'presentation\s*\(1-5\)\s*:\s*(\d)',
+            'timeliness': r'timeliness\s*\(1-5\)\s*:\s*(\d)',
+            'comments': r'comments\s*:\s*(.*)',
+        }
+        
+        found_structured = False
+        for key, pattern in patterns.items():
+            match = re.search(pattern, message_body, re.IGNORECASE)
+            if match:
+                val = match.group(1).strip()
+                if key in ['food_quality', 'service_quality', 'presentation', 'timeliness']:
+                    details[key] = int(val) if 1 <= int(val) <= 5 else None
+                else:
+                    details[key] = val
+                found_structured = True
+
+        if found_structured:
+            # If we have structured data, calculate an average or use the first available rating as overall
+            ratings = [details[k] for k in ['food_quality', 'service_quality', 'presentation', 'timeliness'] if details[k]]
+            if ratings:
+                details['rating'] = round(sum(ratings) / len(ratings))
+            return details
+
+        # 2. Traditional parsing logic for unstructured messages
+        # ... (rest of the manual/sentiment logic)
+        
+        # Check for explicit booking ref anywhere
+        ref_match = re.search(r'BK\d{5}', message_body)
+        if ref_match:
+            details['booking_id'] = ref_match.group(0)
+
+        rating = None
+        # Enhanced rating patterns
         rating_patterns = [
-            r'^(\d)\s*[-\s]',        # "5 - excellent", "4 good" (most common)
-            r'(\d)\s*star',          # "5 stars", "3 star"
-            r'(\d)/5',               # "4/5", "5/5"
-            r'rating:?\s*(\d)',      # "rating: 4", "rating 5"
+            r'^(\d)\s*[-\s]',        # "5 - excellent"
+            r'(\d)\s*star',          # "5 stars"
+            r'(\d)/5',               # "4/5"
+            r'rating:?\s*(\d)',      # "rating: 4"
             r'(\d)\s*out\s*of\s*5',  # "4 out of 5"
-            r'rate[:\s]*(\d)',       # "rate: 5", "rate 4"
-            r'score[:\s]*(\d)',      # "score: 5", "score 4"
-            r'give[:\s]*(\d)',       # "give 5", "give: 4"
         ]
         
-        for pattern in rating_patterns:
-            match = re.search(pattern, message)
-            if match:
-                rating_value = int(match.group(1))
-                if 1 <= rating_value <= 5:
-                    rating = rating_value
-                    # Clean comments by removing the rating part
-                    comments = re.sub(pattern, '', message_body.strip()).strip(' -,.')
-                    break
+        # Check for explicit rating at start
+        explicit_match = re.match(r'^(\d)', message)
+        if explicit_match:
+            val = int(explicit_match.group(1))
+            if 1 <= val <= 5:
+                rating = val
+                details['comments'] = message_body[1:].strip(' -,.')
         
-        # Enhanced sentiment analysis for better inference
         if not rating:
-            # Highly positive words
-            excellent_words = ['excellent', 'amazing', 'perfect', 'outstanding', 'fantastic', 'exceptional', 'superb', 'wonderful', 'magnificent', 'brilliant']
-            # Very positive words
-            very_good_words = ['great', 'awesome', 'lovely', 'beautiful', 'impressive', 'delicious', 'tasty', 'pleased', 'satisfied', 'happy']
-            # Positive words
-            good_words = ['good', 'nice', 'fine', 'okay', 'satisfactory', 'decent', 'pleasant', 'alright']
-            # Negative words
-            poor_words = ['poor', 'bad', 'disappointing', 'unsatisfactory', 'below average']
-            # Very negative words
-            terrible_words = ['terrible', 'awful', 'horrible', 'disgusting', 'worst', 'hate', 'appalling']
-            
+            for pattern in rating_patterns:
+                match = re.search(pattern, message)
+                if match:
+                    val = int(match.group(1))
+                    if 1 <= val <= 5:
+                        rating = val
+                        details['comments'] = re.sub(pattern, '', message_body.strip(), flags=re.IGNORECASE).strip(' -,.')
+                        break
+        
+        # Sentiment fallback
+        if not rating:
+            excellent_words = ['excellent', 'amazing', 'perfect', 'outstanding', 'fantastic']
+            very_good_words = ['great', 'awesome', 'lovely', 'delicious']
             if any(word in message for word in excellent_words):
                 rating = 5
             elif any(word in message for word in very_good_words):
-                rating = 4  
-            elif any(word in message for word in good_words):
+                rating = 4
+            elif 'good' in message:
                 rating = 3
-            elif any(word in message for word in poor_words):
+            elif any(word in message for word in ['poor', 'bad']):
                 rating = 2
-            elif any(word in message for word in terrible_words):
+            elif any(word in message for word in ['terrible', 'awful']):
                 rating = 1
             else:
-                rating = 3  # Default neutral rating
-                
-        # Ensure comments are not empty and meaningful
-        if not comments or len(comments.strip()) < 3:
-            comments = message_body.strip()
-        
-        return rating, comments
+                rating = 3
+
+        details['rating'] = rating
+        return details
     
     def _send_feedback_confirmation(self, mobile_number, rating, feedback):
         """Send a polite sign-off note after feedback receipt"""

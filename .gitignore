@@ -113,5 +113,4 @@ pytestdebug.log
 volumes/*
 odoo.conf
 .history/*
-.history\
 # End of .gitignore

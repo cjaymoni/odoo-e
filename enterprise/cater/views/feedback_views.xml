@@ -36,8 +36,8 @@
                     
                     <group>
                         <group name="basic_info">
-                            <field name="booking_id"/>
                             <field name="partner_id"/>
+                            <field name="booking_id" domain="[('partner_id', '=', partner_id), ('state', '=', 'completed')]"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="feedback_date"/>
                             <field name="source"/>

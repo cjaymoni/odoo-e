@@ -35,7 +35,12 @@ class CateringFeedback(models.Model):
 
     booking_id = fields.Many2one('cater.event.booking', 'Booking', required=True, ondelete='cascade', check_company=True)
     company_id = fields.Many2one('res.company', 'Company', related='booking_id.company_id', store=True, index=True)
-    partner_id = fields.Many2one('res.partner', related='booking_id.partner_id', store=True)
+    partner_id = fields.Many2one('res.partner', string='Customer', required=True)
+
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        if self.partner_id:
+            self.booking_id = False
     rating = fields.Selection([
         ('1', '1 Star - Poor'),
         ('2', '2 Stars - Fair'),
